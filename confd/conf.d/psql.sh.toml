@@ -1,0 +1,4 @@
+[template]
+src = "psql.sh.tmpl"
+dest = "/etc/profile.d/psql.sh"
+mode = "0644"

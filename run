@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -e
+
+export SELF="$1"
+
+if [[ -z "${SELF}" ]]; then
+  echo "Usage: $0 <node> [commands...]" >&2
+  exit 1
+fi
+
+shift
+
+confd -onetime -backend=env
+
+source /etc/profile
+
+while ! psql -c 'select 1' >/dev/null 2>&1; do
+  echo "Waiting for postgres to be available..."
+  sleep 1
+done
+
+while [[ -n "$1" ]]; do
+  COMMAND="$1"
+  shift
+
+  case "${COMMAND}" in
+  fresh)
+    rm -rf /data/*
+
+    dropdb stellar || true
+    createdb stellar
+    stellar-core --newdb
+
+    [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core --newhist "${SELF}"
+    ;;
+  forcescp)
+    stellar-core --forcescp
+    ;;
+  *)
+    echo "Unknown container command $COMMAND" >&2
+    exit 1
+  esac
+done
+
+exec stellar-core

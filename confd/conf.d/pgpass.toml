@@ -1,0 +1,4 @@
+[template]
+src = "pgpass.tmpl"
+dest = "/root/.pgpass"
+mode = "0600"
