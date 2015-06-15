@@ -14,6 +14,7 @@ import boto.ses
 class CoreMailer(object):
     def __init__(self, config):
         self.config = config
+        self.hostname = self.config.get('Config', 'hostname')
 
     def format_time(self, epoch_time):
         time_format = "%Y-%m-%dT%H:%M:%S"
@@ -22,7 +23,8 @@ class CoreMailer(object):
     def find_core(self):
         path = self.config.get('Config', 'cores')
         cores = [os.path.join(path, core) for core in os.listdir(path)]
-        return max(cores, key=os.path.getctime)
+        if len(cores):
+          return max(cores, key=os.path.getctime)
 
     def find_logs(self, epoch_time):
         log = self.config.get('Config', 'log')
@@ -32,7 +34,10 @@ class CoreMailer(object):
                    "-C50",
                    ("^%s" % formatted_time),
                    log]
-        return subprocess.check_output(command)
+        try:
+            return subprocess.check_output(command)
+        except subprocess.CalledProcessError:
+            return 'Unable to retrieve logs around %s' % formatted_time
 
     def get_trace(self, core):
         binary = self.config.get('Config', 'bin')
@@ -48,7 +53,7 @@ class CoreMailer(object):
 
     def send_alert(self, epoch_time, trace, logs):
         template_vars = {
-            "hostname": self.config.get('Config', 'hostname'),
+            "hostname": self.hostname,
             "binary": self.config.get('Config', 'bin'),
             "formatted_time": self.format_time(epoch_time),
             "trace": trace,
@@ -79,13 +84,27 @@ class CoreMailer(object):
         conn = boto.ses.connect_to_region(self.config.get('Config', 'region'))
         conn.send_email(sender, subject, None, [recipient], html_body=body)
 
+    def archive_core(self, core):
+        command_string = self.config.get('Config', 'archive_command')
+        if command_string:
+            core_path = os.path.join(self.hostname, os.path.basename(core))
+            command_string = command_string.format(core, core_path)
+            logging.info(subprocess.check_output(command_string.split(' ')))
+        else:
+            logging.warn("No archive command, just removing core file")
+        os.remove(core)
+
     def run(self):
         core = self.find_core()
-        logging.info('Found core file %s', core)
-        epoch_time = os.path.getctime(core)
-        logs = self.find_logs(epoch_time)
-        trace = self.get_trace(core)
-        self.send_alert(epoch_time, trace, logs)
+        if core:
+            logging.info('Found core file %s', core)
+            epoch_time = os.path.getctime(core)
+            logs = self.find_logs(epoch_time)
+            trace = self.get_trace(core)
+            self.send_alert(epoch_time, trace, logs)
+            self.archive_core(core)
+        else:
+            logging.info('No core file found for processing')
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
@@ -101,8 +120,9 @@ if __name__ == "__main__":
         "log": "/logs/syslog",
         "hostname": socket.gethostname(),
         "from": "ops+%(hostname)s@stellar.org",
-        "to": "ops@stellar.org",
-        "bin": "/usr/local/bin/stellar-core"
+        "to": os.environ.get('CORE_ALERT_RECIPIENT'),
+        "bin": "/usr/local/bin/stellar-core",
+        "archive_command": os.environ.get('CORE_ARCHIVE_COMMAND')
     })
     config.add_section("Config")
     config.read(config_file)
