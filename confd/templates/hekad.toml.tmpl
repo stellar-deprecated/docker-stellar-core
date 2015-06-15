@@ -36,6 +36,23 @@ encoder = "PayloadEncoder"
   Content-Type = ["application/json"]
 {{end}}
 
+{{if (getenv "CORE_ALERT_RECIPIENT")}}
+[NullSplitter]
+
+[CoreFileProcessor]
+type = "ProcessInput"
+ticker_interval = 30
+splitter = "NullSplitter"
+stdout = true
+stderr = true
+  [CoreFileProcessor.command.0]
+  bin = "/utils/core_file_processor"
+
+  [CoreFileProcessor.command.1]
+  bin = "tee"
+  args = ["-a", "/logs/core_file_processor.log"]
+{{end}}
+
 [PayloadEncoder]
 
 [DashboardOutput]
