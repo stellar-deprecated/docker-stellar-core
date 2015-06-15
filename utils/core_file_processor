@@ -117,7 +117,7 @@ if __name__ == "__main__":
     config = ConfigParser.ConfigParser({
         "region": "us-east-1",
         "cores": "/cores",
-        "log": "/logs/syslog",
+        "log": "/logs/host/syslog",
         "hostname": socket.gethostname(),
         "from": "ops+%(hostname)s@stellar.org",
         "to": os.environ.get('CORE_ALERT_RECIPIENT'),
