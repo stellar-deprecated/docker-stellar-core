@@ -46,3 +46,10 @@ Catch up minimal
 docker run --name db_compat_minimal -p 5641:5432 --env-file examples/compat_minimal.env -d stellar/stellar-core-state
 docker run --name compat_minimal --net host --volumes-from db_compat_minimal --env-file examples/compat_minimal.env -d stellar/stellar-core /start compat_minimal fresh
 ```
+
+Single node local network
+
+```
+docker run --name single-state -p 5432:5432 --env-file examples/single.env -d stellar/stellar-core-state
+docker run --name single --net host --volumes-from single-state --env-file examples/single.env -d stellar/stellar-core /run main fresh
+```
