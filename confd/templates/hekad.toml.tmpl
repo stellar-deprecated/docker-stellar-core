@@ -46,11 +46,18 @@ splitter = "NullSplitter"
 stdout = true
 stderr = true
   [CoreFileProcessor.command.0]
-  bin = "/utils/core_file_processor"
-
-  [CoreFileProcessor.command.1]
-  bin = "tee"
-  args = ["-a", "/logs/core_file_processor.log"]
+  bin = "docker"
+  args = ["run",
+          "--net", "host",
+          "-e", "CORE_ALERT_RECIPIENT={{getenv "CORE_ALERT_RECIPIENT"}}",
+          "-e", "CORE_ARCHIVE_COMMAND={{getenv "CORE_ARCHIVE_COMMAND"}}",
+          {{if (getenv "AWS_CREDENTIAL_SOURCE")}}
+          "-v", "{{getenv "AWS_CREDENTIAL_SOURCE"}}:/root/.aws:ro",
+          {{end}}
+          "--volumes-from", "{{getenv "CONTAINER_ID"}}",
+          "-t", "--rm",
+          "stellar/stellar-core",
+          "/utils/core_file_processor"]
 {{end}}
 
 [PayloadEncoder]

@@ -47,9 +47,26 @@ docker run --name db_compat_minimal -p 5641:5432 --env-file examples/compat_mini
 docker run --name compat_minimal --net host --volumes-from db_compat_minimal --env-file examples/compat_minimal.env -d stellar/stellar-core /start compat_minimal fresh
 ```
 
-Single node local network
+Single node local network (with monitoring). Note that the monitoring container is invoked with the docker socket exposed. This allows us to invoke `docker run stellar/stellar-core` to do things like process core dumps.
 
 ```
-docker run --name single-state -p 5432:5432 --env-file examples/single.env -d stellar/stellar-core-state
-docker run --name single --net host --volumes-from single-state --env-file examples/single.env -d stellar/stellar-core /run main fresh
+docker run --name single-state \
+           -p 5432:5432 \
+           --env-file examples/single.env \
+           -d stellar/stellar-core-state
+
+docker run --name single \
+           --net host \
+           --volumes-from single-state \
+           -v /volumes/main/cores:/cores -v /volumes/main/logs:/logs \
+           --env-file examples/single.env \
+           -d stellar/stellar-core \
+           /start main fresh
+
+docker run --name single-heka \
+           --net container:single \
+           --volumes-from single \
+           -v /var/run/docker.sock:/var/run/docker.sock \
+           --env-file examples/single.env \
+           -d stellar/heka
 ```

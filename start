@@ -11,6 +11,8 @@ fi
 
 shift
 
+export CONTAINER_ID=$(grep cpu: /proc/self/cgroup | awk -F/ '{ print $3 }')
+
 confd -onetime -backend=env
 
 source /etc/profile
