@@ -15,6 +15,6 @@ RUN /install
 
 ADD heka /heka
 ADD confd /etc/confd
-ADD run /
+ADD start /
 
-CMD ["/run"]
+CMD ["/start"]

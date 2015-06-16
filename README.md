@@ -9,12 +9,12 @@ This one is still a little complex to get running, these are the basics:
 ```sh
 for N in 1 2; do
   docker run --name db$N -p 544$N:5432 --env-file examples/local.env -d stellar/stellar-core-state
-  docker run --name node$N --net host -v ~/.aws:/root/.aws --volumes-from db$N --env-file examples/local.env -d stellar/stellar-core /run node$N fresh forcescp
+  docker run --name node$N --net host -v ~/.aws:/root/.aws --volumes-from db$N --env-file examples/local.env -d stellar/stellar-core /start node$N fresh forcescp
 done
 
 for N in 3; do
   docker run --name db$N -p 544$N:5432 --env-file examples/local.env -d stellar/stellar-core-state
-  docker run --name node$N --net host -v ~/.aws:/root/.aws --volumes-from db$N --env-file examples/local.env -d stellar/stellar-core /run node$N fresh
+  docker run --name node$N --net host -v ~/.aws:/root/.aws --volumes-from db$N --env-file examples/local.env -d stellar/stellar-core /start node$N fresh
 done
 ```
 
@@ -37,12 +37,12 @@ Catch up complete
 
 ```
 docker run --name db_compat_complete -p 5541:5432 --env-file examples/compat_complete.env -d stellar/stellar-core-state
-docker run --name compat_complete --net host --volumes-from db_compat_complete --env-file examples/compat_complete.env -d stellar/stellar-core /run compat_complete fresh
+docker run --name compat_complete --net host --volumes-from db_compat_complete --env-file examples/compat_complete.env -d stellar/stellar-core /start compat_complete fresh
 ```
 
 Catch up minimal
 
 ```
 docker run --name db_compat_minimal -p 5641:5432 --env-file examples/compat_minimal.env -d stellar/stellar-core-state
-docker run --name compat_minimal --net host --volumes-from db_compat_minimal --env-file examples/compat_minimal.env -d stellar/stellar-core /run compat_minimal fresh
+docker run --name compat_minimal --net host --volumes-from db_compat_minimal --env-file examples/compat_minimal.env -d stellar/stellar-core /start compat_minimal fresh
 ```
