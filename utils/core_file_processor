@@ -119,7 +119,7 @@ if __name__ == "__main__":
         "cores": "/cores",
         "log": "/logs/host/syslog",
         "hostname": socket.gethostname(),
-        "from": "ops+%(hostname)s@stellar.org",
+        "from": "%(hostname)s <ops+%(hostname)s@stellar.org>",
         "to": os.environ.get('CORE_ALERT_RECIPIENT'),
         "bin": "/usr/local/bin/stellar-core",
         "archive_command": os.environ.get('CORE_ARCHIVE_COMMAND')
