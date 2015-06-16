@@ -56,6 +56,9 @@ stderr = true
           {{end}}
           "-v", "/var/log/syslog:/logs/host/syslog:ro",
           "--volumes-from", "{{getenv "CONTAINER_ID"}}",
+          {{if (getenv "USE_SYSLOG")}}
+          "--log-driver", "syslog",
+          {{end}}
           "-t", "--rm",
           "stellar/stellar-core",
           "/utils/core_file_processor"]
