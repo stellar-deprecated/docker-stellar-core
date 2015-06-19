@@ -51,6 +51,7 @@ stderr = true
           "--net", "host",
           "-e", "CORE_ALERT_RECIPIENT={{getenv "CORE_ALERT_RECIPIENT"}}",
           "-e", "CORE_ARCHIVE_COMMAND={{getenv "CORE_ARCHIVE_COMMAND"}}",
+          "-e", "CORE_LOG_FILTER={{getenv "CONTAINER_ID" | printf "%.12s"}}",
           {{if (getenv "AWS_CREDENTIAL_SOURCE")}}
           "-v", "{{getenv "AWS_CREDENTIAL_SOURCE"}}:/root/.aws:ro",
           {{end}}

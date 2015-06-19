@@ -26,6 +26,21 @@ class CoreMailer(object):
         if len(cores):
           return max(cores, key=os.path.getctime)
 
+    def filter_logs(self, logs):
+        log_filter = self.config.get('Config', 'log_filter')
+        if not log_filter:
+            return logs
+
+        def strip_prefix(line):
+            first_space = line.index(' ')
+            following_colon = line.index(':', first_space)
+            return line[0:first_space] + line[following_colon:]
+
+        lines = logs.split("\n")
+        filtered = filter(lambda line: log_filter in line, lines)
+        stripped = map(strip_prefix, filtered)
+        return "\n".join(stripped)
+
     def find_logs(self, epoch_time):
         log = self.config.get('Config', 'log')
         formatted_time = self.format_time(epoch_time)
@@ -35,7 +50,7 @@ class CoreMailer(object):
                    ("^%s" % formatted_time),
                    log]
         try:
-            return subprocess.check_output(command)
+            return self.filter_logs(subprocess.check_output(command))
         except subprocess.CalledProcessError:
             return 'Unable to retrieve logs around %s' % formatted_time
 
@@ -118,6 +133,7 @@ if __name__ == "__main__":
         "region": "us-east-1",
         "cores": "/cores",
         "log": "/logs/host/syslog",
+        "log_filter": os.environ.get('CORE_LOG_FILTER'),
         "hostname": socket.gethostname(),
         "from": "%(hostname)s <ops+%(hostname)s@stellar.org>",
         "to": os.environ.get('CORE_ALERT_RECIPIENT'),
@@ -129,3 +145,4 @@ if __name__ == "__main__":
 
     mailer = CoreMailer(config)
     mailer.run()
+
