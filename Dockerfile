@@ -15,6 +15,7 @@ RUN /install
 
 ADD heka /heka
 ADD confd /etc/confd
+ADD utils /utils
 ADD start /
 
 CMD ["/start"]

@@ -11,7 +11,8 @@ apt-get update
 apt-get install -y libstdc++6 libpq5 lldb-3.6
 
 apt-get install -y python-pip
-pip install awscli
+pip install awscli # for uploading history to s3
+pip install boto   # for sending crash emails
 
 apt-get install -y postgresql-client
 

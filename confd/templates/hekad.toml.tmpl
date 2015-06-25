@@ -36,6 +36,35 @@ encoder = "PayloadEncoder"
   Content-Type = ["application/json"]
 {{end}}
 
+{{if (getenv "CORE_ALERT_RECIPIENT")}}
+[NullSplitter]
+
+[CoreFileProcessor]
+type = "ProcessInput"
+ticker_interval = 30
+splitter = "NullSplitter"
+stdout = true
+stderr = true
+  [CoreFileProcessor.command.0]
+  bin = "docker"
+  args = ["run",
+          "--net", "host",
+          "-e", "CORE_ALERT_RECIPIENT={{getenv "CORE_ALERT_RECIPIENT"}}",
+          "-e", "CORE_ARCHIVE_COMMAND={{getenv "CORE_ARCHIVE_COMMAND"}}",
+          "-e", "CORE_LOG_FILTER={{getenv "CONTAINER_ID" | printf "%.12s"}}",
+          {{if (getenv "AWS_CREDENTIAL_SOURCE")}}
+          "-v", "{{getenv "AWS_CREDENTIAL_SOURCE"}}:/root/.aws:ro",
+          {{end}}
+          "-v", "/var/log/syslog:/logs/host/syslog:ro",
+          "--volumes-from", "{{getenv "CONTAINER_ID"}}",
+          {{if (getenv "USE_SYSLOG")}}
+          "--log-driver", "syslog",
+          {{end}}
+          "-t", "--rm",
+          "stellar/stellar-core",
+          "/utils/core_file_processor.py"]
+{{end}}
+
 [PayloadEncoder]
 
 [DashboardOutput]
