@@ -11,25 +11,26 @@ from string import Template
 import textwrap
 import boto.ses
 
+
+def format_time(epoch_time):
+    time_format = "%Y-%m-%dT%H:%M:%S"
+    return time.strftime(time_format, time.gmtime(epoch_time))
+
+
 class CoreMailer(object):
     def __init__(self, config):
         self.config = config
         self.hostname = self.config.get('Config', 'hostname')
         self.out = sys.stdout
 
-    def format_time(self, epoch_time):
-        time_format = "%Y-%m-%dT%H:%M:%S"
-        return time.strftime(time_format, time.gmtime(epoch_time))
-
     def find_core(self):
         path = self.config.get('Config', 'cores')
         core_filter = self.config.get('Config', 'core_filter')
 
-        cores = [os.path.join(path, core) for core in os.listdir(path)]
-        stellar_core_cores = filter(lambda core: core_filter in core, cores)
+        cores = [os.path.join(path, core) for core in os.listdir(path) if core_filter in core]
 
-        if len(stellar_core_cores):
-          return max(stellar_core_cores, key=os.path.getctime)
+        if len(cores):
+            return max(cores, key=os.path.getctime)
 
     def filter_logs(self, logs):
         log_filter = self.config.get('Config', 'log_filter')
@@ -48,7 +49,7 @@ class CoreMailer(object):
 
     def find_logs(self, epoch_time):
         log = self.config.get('Config', 'log')
-        formatted_time = self.format_time(epoch_time)
+        formatted_time = format_time(epoch_time)
         logging.info('Searching %s for logs around %s', log, formatted_time)
         command = ["egrep",
                    "-C50",
@@ -79,7 +80,7 @@ class CoreMailer(object):
         template_vars = {
             "hostname": self.hostname,
             "binary": self.config.get('Config', 'bin'),
-            "formatted_time": self.format_time(epoch_time),
+            "formatted_time": format_time(epoch_time),
             "trace": trace,
             "logs": logs
         }
@@ -90,7 +91,7 @@ class CoreMailer(object):
         subject = 'stellar-core crash on %(hostname)s' % template_vars
         template = textwrap.dedent("""
           <p>${binary} on ${hostname} crashed at ${formatted_time} with the
-          following backtraces:</p>
+          following back traces:</p>
 
           <pre><code>
           ${trace}
@@ -109,19 +110,20 @@ class CoreMailer(object):
 
     def send_email(self, sender, recipient, subject, body):
         conn = boto.ses.connect_to_region(self.config.get('Config', 'region'))
+        # noinspection PyTypeChecker
         conn.send_email(sender, subject, None, [recipient], html_body=body)
 
     def output_trace(self, epoch_time, trace):
         template_vars = {
             "hostname": self.hostname,
             "binary": self.config.get('Config', 'bin'),
-            "formatted_time": self.format_time(epoch_time),
+            "formatted_time": format_time(epoch_time),
             "trace": trace
         }
 
         template = textwrap.dedent("""
           ${binary} on ${hostname} crashed at ${formatted_time} with the
-          following backtraces:
+          following back traces:
 
           ${trace}
         """)
@@ -159,15 +161,16 @@ class CoreMailer(object):
         else:
             logging.info('No core file found for processing')
 
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         config_file = sys.argv[1]
     else:
-        config_file = "/etc/coremailer.ini"
+        config_file = "/etc/core_file_processor.ini"
 
     logging.basicConfig(level=logging.INFO)
 
-    config = ConfigParser.ConfigParser({
+    config_parser = ConfigParser.ConfigParser({
         "region": "us-east-1",
         "cores": "/cores",
         "log": "/logs/host/syslog",
@@ -181,10 +184,8 @@ if __name__ == "__main__":
         "mode": os.environ.get('MODE', 'aws')
     })
 
+    config_parser.add_section("Config")
+    config_parser.read(config_file)
 
-    config.add_section("Config")
-    config.read(config_file)
-
-    mailer = CoreMailer(config)
+    mailer = CoreMailer(config_parser)
     mailer.run()
-
