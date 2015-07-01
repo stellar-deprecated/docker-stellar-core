@@ -22,9 +22,13 @@ class CoreMailer(object):
 
     def find_core(self):
         path = self.config.get('Config', 'cores')
+        core_filter = self.config.get('Config', 'core_filter')
+
         cores = [os.path.join(path, core) for core in os.listdir(path)]
-        if len(cores):
-          return max(cores, key=os.path.getctime)
+        stellar_core_cores = filter(lambda core: core_filter in core, cores)
+
+        if len(stellar_core_cores):
+          return max(stellar_core_cores, key=os.path.getctime)
 
     def filter_logs(self, logs):
         log_filter = self.config.get('Config', 'log_filter')
@@ -134,6 +138,7 @@ if __name__ == "__main__":
         "cores": "/cores",
         "log": "/logs/host/syslog",
         "log_filter": os.environ.get('CORE_LOG_FILTER'),
+        "core_filter": "stellar-core",
         "hostname": socket.gethostname(),
         "from": "%(hostname)s <ops+%(hostname)s@stellar.org>",
         "to": os.environ.get('CORE_ALERT_RECIPIENT'),
