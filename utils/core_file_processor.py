@@ -15,6 +15,7 @@ class CoreMailer(object):
     def __init__(self, config):
         self.config = config
         self.hostname = self.config.get('Config', 'hostname')
+        self.out = sys.stdout
 
     def format_time(self, epoch_time):
         time_format = "%Y-%m-%dT%H:%M:%S"
@@ -61,13 +62,17 @@ class CoreMailer(object):
     def get_trace(self, core):
         binary = self.config.get('Config', 'bin')
         logging.info('Processing core file %s with binary %s', core, binary)
-        command = ["lldb-3.6",
-                   "-f", binary,
-                   "-c", core,
-                   "--batch",
-                   "-o", ("target create -c '%s' '%s'" % (core, binary)),
-                   "-o", "script import time; time.sleep(1)",
-                   "-o", "thread backtrace all"]
+
+        # matschaffer: this is really awful
+        # But lldb just exits with no output and exit code -11 if I try to run
+        # this script as a container entry point
+        lldb_command = "lldb-3.6 -f %(binary)s -c %(core)s --batch " + \
+                       "-o 'target create -c \"%(core)s\" \"%(binary)s\"' " + \
+                       "-o 'script import time; time.sleep(1)' " + \
+                       "-o 'thread backtrace all'"
+        command = ["bash", "-c",
+                   (lldb_command % {"core": core, "binary": binary})]
+
         return subprocess.check_output(command, stderr=subprocess.STDOUT)
 
     def send_alert(self, epoch_time, trace, logs):
@@ -100,8 +105,28 @@ class CoreMailer(object):
         body = Template(template).substitute(template_vars)
 
         logging.info("Sending core alert from %s to %s", sender, recipient)
+        self.send_email(sender, recipient, subject, body)
+
+    def send_email(self, sender, recipient, subject, body):
         conn = boto.ses.connect_to_region(self.config.get('Config', 'region'))
         conn.send_email(sender, subject, None, [recipient], html_body=body)
+
+    def output_trace(self, epoch_time, trace):
+        template_vars = {
+            "hostname": self.hostname,
+            "binary": self.config.get('Config', 'bin'),
+            "formatted_time": self.format_time(epoch_time),
+            "trace": trace
+        }
+
+        template = textwrap.dedent("""
+          ${binary} on ${hostname} crashed at ${formatted_time} with the
+          following backtraces:
+
+          ${trace}
+        """)
+        body = Template(template).substitute(template_vars)
+        self.out.write(body)
 
     def archive_core(self, core):
         command_string = self.config.get('Config', 'archive_command')
@@ -115,13 +140,22 @@ class CoreMailer(object):
 
     def run(self):
         core = self.find_core()
+        mode = self.config.get('Config', 'mode')
+
         if core:
             logging.info('Found core file %s', core)
             epoch_time = os.path.getctime(core)
-            logs = self.find_logs(epoch_time)
             trace = self.get_trace(core)
-            self.send_alert(epoch_time, trace, logs)
-            self.archive_core(core)
+
+            if mode == "aws":
+                logs = self.find_logs(epoch_time)
+                self.send_alert(epoch_time, trace, logs)
+                self.archive_core(core)
+            elif mode == "local":
+                self.output_trace(epoch_time, trace)
+            else:
+                logging.fatal("Unknown MODE setting: %s", mode)
+                sys.exit(1)
         else:
             logging.info('No core file found for processing')
 
@@ -143,8 +177,11 @@ if __name__ == "__main__":
         "from": "%(hostname)s <ops+%(hostname)s@stellar.org>",
         "to": os.environ.get('CORE_ALERT_RECIPIENT'),
         "bin": "/usr/local/bin/stellar-core",
-        "archive_command": os.environ.get('CORE_ARCHIVE_COMMAND')
+        "archive_command": os.environ.get('CORE_ARCHIVE_COMMAND'),
+        "mode": os.environ.get('MODE', 'aws')
     })
+
+
     config.add_section("Config")
     config.read(config_file)
 

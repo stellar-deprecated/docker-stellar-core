@@ -1,15 +1,23 @@
-from nose.tools import assert_equals
+from nose.tools import assert_equals, assert_regexp_matches
 
 from core_file_processor import CoreMailer
 
 import textwrap
 import ConfigParser
+from StringIO import StringIO
 
-def mailer(options):
+def create_mailer(options=None):
     defaults = {
-        "hostname": "unittests"
+        "cores": "fakecoredir",
+        "log": "fakelogfile",
+        "hostname": "unittests",
+        "bin": "/usr/local/bin/stellar-core",
+        "from": "ops+unittests@stellar.org",
+        "to": "mat@stellar.org",
+        "region": "us-east-1"
     }
-    defaults.update(options)
+    if options:
+        defaults.update(options)
     config = ConfigParser.ConfigParser(defaults)
     config.add_section("Config")
     core_mailer = CoreMailer(config)
@@ -28,5 +36,34 @@ def test_log_filtering():
       2015-06-16T21:07:04.007836+00:00:   what():  baseCheckDecode decoded to <5 bytes
       2015-06-16T21:07:04.010012+00:00: /start: line 29:    28 Aborted                 (core dumped) stellar-core --newdb
     """).strip()
-    config = { "log_filter": "b60e5fc489e2" }
-    assert_equals(mailer(config).filter_logs(logs), expected_logs)
+    mailer = create_mailer({"log_filter": "b60e5fc489e2"})
+    assert_equals(mailer.filter_logs(logs), expected_logs)
+
+def test_local_mode():
+    mailer = create_mailer({"mode": "local"})
+    mailer.find_core = lambda: __file__
+    mailer.get_trace = lambda _: "some traces"
+    mailer.out = StringIO()
+    mailer.run()
+    assert_regexp_matches(mailer.out.getvalue(), "some traces")
+
+def test_aws_mode():
+    captures = {}
+
+    def capture_output(sender, recipient, subject, body):
+        captures["sender"] = sender
+        captures["recipient"] = recipient
+        captures["subject"] = subject
+        captures["body"] = body
+
+    mailer = create_mailer({"mode": "aws"})
+
+    mailer.find_core = lambda: __file__
+    mailer.find_logs = lambda _: "some logs"
+    mailer.archive_core = lambda _: None
+    mailer.get_trace = lambda _: "some traces"
+    mailer.send_email = capture_output
+
+    mailer.run()
+    assert_regexp_matches(captures["subject"], "crash")
+    assert_regexp_matches(captures["body"], "some traces")
