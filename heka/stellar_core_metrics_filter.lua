@@ -69,9 +69,12 @@ function send_to_influx(ns)
     table.insert(output, point_set)
   end
 
-  message.Payload = cjson.encode(output)
+  -- Only inject if we have metrics to send
+  if next(output) then
+    message.Payload = cjson.encode(output)
 
-  inject_message(message)
+    inject_message(message)
+  end
 end
 
 function send_to_atlas(ns)
@@ -107,9 +110,12 @@ function send_to_atlas(ns)
     end
   end
 
-  message.Payload = cjson.encode(output)
+  -- Only inject if we have metrics to send
+  if next(output.metrics) then
+    message.Payload = cjson.encode(output)
 
-  inject_message(message)
+    inject_message(message)
+  end
 end
 
 function timer_event(ns)
