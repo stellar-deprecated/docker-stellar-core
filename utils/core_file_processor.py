@@ -71,7 +71,7 @@ class CoreMailer(object):
                        "-o 'target create -c \"%(core)s\" \"%(binary)s\"' " + \
                        "-o 'script import time; time.sleep(1)' " + \
                        "-o 'thread backtrace all'"
-        command = ["bash", "-c",
+        command = ["script", "-c",
                    (lldb_command % {"core": core, "binary": binary})]
 
         return subprocess.check_output(command, stderr=subprocess.STDOUT)
@@ -140,8 +140,8 @@ class CoreMailer(object):
             logging.warn("No archive command, just removing core file")
         os.remove(core)
 
-    def run(self):
-        core = self.find_core()
+    def run(self, single_core):
+        core = single_core or self.find_core()
         mode = self.config.get('Config', 'mode')
 
         if core:
@@ -164,9 +164,11 @@ class CoreMailer(object):
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        config_file = sys.argv[1]
+        single_core = sys.argv[1]
     else:
-        config_file = "/etc/core_file_processor.ini"
+        single_core = None
+
+    config_file = "/etc/core_file_processor.ini"
 
     logging.basicConfig(level=logging.INFO)
 
@@ -188,4 +190,4 @@ if __name__ == "__main__":
     config_parser.read(config_file)
 
     mailer = CoreMailer(config_parser)
-    mailer.run()
+    mailer.run(single_core)
