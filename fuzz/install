@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -e
+
+# apt-get update
+
+apt-get install -y \
+  make \
+  git \
+  gcc \
+  autoconf \
+  automake \
+  libtool \
+  pkg-config \
+  flex \
+  bison \
+  clang-3.5 \
+  llvm-3.5 \
+  g++-4.9 \
+  libstdc++6 \
+  libpq5 \
+  libpq-dev
+
+update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
+update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.5 90 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-3.5
+update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-3.5 90
+
+wget -nv -O afl-${AFL_VERSION}.tgz http://lcamtuf.coredump.cx/afl/releases/afl-${AFL_VERSION}.tgz
+tar -zxf afl-${AFL_VERSION}.tgz
+cd afl-${AFL_VERSION}
+make
+make install
+cd ..
+rm -rf afl-${AFL_VERSION}
+rm afl-${AFL_VERSION}.tgz
