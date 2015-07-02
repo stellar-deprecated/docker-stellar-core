@@ -4,3 +4,14 @@ wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | apt-key add -
 add-apt-repository "deb http://llvm.org/apt/jessie/ llvm-toolchain-jessie-3.6 main"
 apt-get update
 apt-get install -y libstdc++6 libpq5 lldb-3.6
+
+BIN=/stellar-core/bin/stellar-core
+
+mkdir /cores/traces
+
+for CORE in /cores/*; do
+  lldb-3.6 -f $BIN $CORE --batch \
+    -o "target create -c '$CORE' '$BIN'" \
+    -o 'script import time; time.sleep(1)' \
+    -o 'thread backtrace all' 2>&1 > /cores/traces/$(basename $CORE).trace
+done
