@@ -46,4 +46,4 @@ while [[ -n "$1" ]]; do
   esac
 done
 
-exec stellar-core
+exec /init -- stellar-core
