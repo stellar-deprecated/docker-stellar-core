@@ -21,6 +21,11 @@ apt-get install -y postgresql-client
 dpkg -i stellar-core.deb
 rm stellar-core.deb
 
+# Allows SIGABRT and adopt orphaned child processes
+wget -nv -O init https://s3.amazonaws.com/stellar.org/releases/3rdparty/github.com/ohjames/lovely_touching/lovely_touching-559873ec
+test $(md5sum init | awk '{print $1}') == "429a9bcefd64e12ac0e0bc7ed91ea734"
+chmod +x init
+
 # purge stuff we don't directly need
 apt-get purge -y sgml-base ucf gcc g++ build-essential xz-utils libpod-latex-perl python-pip dbus
 apt-get autoremove -y
