@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+
+[[ -f stellar-core/autogen.sh ]] || git clone https://github.com/stellar/stellar-core stellar-core
+
+cd stellar-core
+
+./autogen.sh
+./configure --enable-afl
+make
+make fuzz

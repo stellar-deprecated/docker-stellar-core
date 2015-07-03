@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | apt-key add -
+add-apt-repository "deb http://llvm.org/apt/jessie/ llvm-toolchain-jessie-3.6 main"
+apt-get update -qq
+apt-get install -qq libstdc++6 libpq5 lldb-3.6
+
+cat > /etc/core_file_processor.ini <<INI
+[Config]
+bin=/stellar-core/bin/stellar-core
+mode=local
+INI
+
+mkdir /cores/traces
+
+for CORE in /cores/stellar-core*.core; do
+    /utils/core_file_processor.py $CORE > /cores/traces/$(basename $CORE).trace
+done
