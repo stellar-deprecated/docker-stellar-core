@@ -40,10 +40,17 @@ while [[ -n "$1" ]]; do
   forcescp)
     stellar-core --forcescp
     ;;
+  skipstart)
+    SKIP_START=true
+    ;;
   *)
     echo "Unknown container command $COMMAND" >&2
     exit 1
   esac
 done
 
-exec /init -- stellar-core
+if [[ -z "${SKIP_START}" ]]; then
+  exec /init -- stellar-core
+else
+  echo "Setup complete. Skipping server start."
+fi
