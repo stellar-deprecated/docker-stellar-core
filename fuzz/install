@@ -40,7 +40,7 @@ rm -rf afl-${AFL_VERSION}
 rm afl-${AFL_VERSION}.tgz
 
 # build stellar-core under fuzzer
-[[ -f stellar-core/autogen.sh ]] || git clone https://github.com/stellar/stellar-core stellar-core
+git clone https://github.com/stellar/stellar-core stellar-core
 cd stellar-core
 ./autogen.sh
 ./configure --enable-afl
