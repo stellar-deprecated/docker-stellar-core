@@ -4,8 +4,6 @@ MAINTAINER Mat Schaffer <mat@stellar.org>
 
 ENV AFL_VERSION 1.83b
 
-VOLUME /stellar-core
-
 ADD fuzz/install /
 RUN /install
 
