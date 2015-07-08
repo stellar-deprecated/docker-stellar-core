@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+CORES=$(find /cores -maxdepth 1 -name 'stellar-core*.core')
+
+mkdir -p /cores/traces
+
+if [[ -z "${CORES}" ]]; then
+  echo No core files found
+  exit 0
+fi
+
 wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | apt-key add -
 add-apt-repository "deb http://llvm.org/apt/jessie/ llvm-toolchain-jessie-3.6 main"
 apt-get update -qq
@@ -10,8 +19,6 @@ cat > /etc/core_file_processor.ini <<INI
 bin=/stellar-core/bin/stellar-core
 mode=local
 INI
-
-mkdir /cores/traces
 
 for CORE in /cores/stellar-core*.core; do
     /utils/core_file_processor.py $CORE > /cores/traces/$(basename $CORE).trace
