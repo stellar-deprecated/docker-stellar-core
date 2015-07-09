@@ -2,7 +2,7 @@ FROM stellar/base:latest
 
 MAINTAINER Mat Schaffer <mat@stellar.org>
 
-ENV STELLAR_CORE_VERSION 0.0.1-45-cedf2f9b
+ENV STELLAR_CORE_VERSION 0.0.1-46-5c7970bc
 
 EXPOSE 39133
 EXPOSE 39132
