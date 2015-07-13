@@ -55,7 +55,7 @@ stderr = true
           {{if (getenv "AWS_CREDENTIAL_SOURCE")}}
           "-v", "{{getenv "AWS_CREDENTIAL_SOURCE"}}:/root/.aws:ro",
           {{end}}
-          "-v", "/var/log/syslog:/logs/host/syslog:ro",
+          "-v", "/var/log/syslog:/host/syslog:ro",
           "--volumes-from", "{{getenv "CONTAINER_ID"}}",
           {{if (getenv "USE_SYSLOG")}}
           "--log-driver", "syslog",

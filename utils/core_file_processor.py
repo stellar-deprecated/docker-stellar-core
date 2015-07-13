@@ -175,7 +175,7 @@ if __name__ == "__main__":
     config_parser = ConfigParser.ConfigParser({
         "region": "us-east-1",
         "cores": "/cores",
-        "log": "/logs/host/syslog",
+        "log": "/host/syslog",
         "log_filter": os.environ.get('CORE_LOG_FILTER'),
         "core_filter": "stellar-core",
         "hostname": socket.gethostname(),
