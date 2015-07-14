@@ -32,6 +32,26 @@ while [[ -n "$1" ]]; do
 
     dropdb stellar || true
     createdb stellar
+
+    if [[ -n "${HORIZON_PASSWORD}" ]]; then
+      dropuser horizon || true
+      createuser horizon
+      psql -c "alter user horizon with password '${HORIZON_PASSWORD}'"
+      psql >/dev/null <<-SQL
+         GRANT CONNECT ON DATABASE stellar to horizon;
+         \c stellar
+         REVOKE ALL ON schema public FROM public;
+         GRANT ALL ON schema public TO stellar;
+         GRANT USAGE ON SCHEMA public to horizon;
+
+         GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO horizon;
+         GRANT SELECT ON ALL TABLES IN SCHEMA public TO horizon;
+
+         ALTER DEFAULT PRIVILEGES FOR USER stellar IN SCHEMA public GRANT SELECT ON SEQUENCES TO horizon;
+         ALTER DEFAULT PRIVILEGES FOR USER stellar IN SCHEMA public GRANT SELECT ON TABLES TO horizon;
+SQL
+    fi
+
     stellar-core --newdb
 
     [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
@@ -40,10 +60,17 @@ while [[ -n "$1" ]]; do
   forcescp)
     stellar-core --forcescp
     ;;
+  skipstart)
+    SKIP_START=true
+    ;;
   *)
     echo "Unknown container command $COMMAND" >&2
     exit 1
   esac
 done
 
-exec /init -- stellar-core
+if [[ -z "${SKIP_START}" ]]; then
+  exec /init -- stellar-core
+else
+  echo "Setup complete. Skipping server start."
+fi
