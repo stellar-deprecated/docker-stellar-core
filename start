@@ -41,14 +41,14 @@ while [[ -n "$1" ]]; do
          GRANT CONNECT ON DATABASE stellar to horizon;
          \c stellar
          REVOKE ALL ON schema public FROM public;
-         GRANT ALL ON schema public TO stellar;
+         GRANT ALL ON schema public TO postgres;
          GRANT USAGE ON SCHEMA public to horizon;
 
          GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO horizon;
          GRANT SELECT ON ALL TABLES IN SCHEMA public TO horizon;
 
-         ALTER DEFAULT PRIVILEGES FOR USER stellar IN SCHEMA public GRANT SELECT ON SEQUENCES TO horizon;
-         ALTER DEFAULT PRIVILEGES FOR USER stellar IN SCHEMA public GRANT SELECT ON TABLES TO horizon;
+         ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON SEQUENCES TO horizon;
+         ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON TABLES TO horizon;
 SQL
     fi
 
