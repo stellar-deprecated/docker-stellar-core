@@ -52,7 +52,7 @@ class CoreMailer(object):
         formatted_time = format_time(epoch_time)
         logging.info('Searching %s for logs around %s', log, formatted_time)
         command = ["egrep",
-                   "-C50",
+                   "-C1000",
                    ("^%s" % formatted_time),
                    log]
         try:
