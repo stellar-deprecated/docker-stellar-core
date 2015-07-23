@@ -16,7 +16,7 @@ apt-get install -qq libstdc++6 libpq5 lldb-3.6
 
 cat > /etc/core_file_processor.ini <<INI
 [Config]
-bin=/stellar-core/bin/stellar-core
+bin=/stellar-core/src/stellar-core
 mode=local
 INI
 
