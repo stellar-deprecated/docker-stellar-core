@@ -13,7 +13,9 @@ CATCHUP_COMPLETE={{getenv "CATCHUP_COMPLETE"}}
 {{end}}
 
 PEER_SEED="{{getenv (printf "%s_PEER_SEED" (getenv "SELF"))}}"
+{{if (getenv (printf "%s_VALIDATION_SEED" (getenv "SELF")))}}
 VALIDATION_SEED="{{getenv (printf "%s_VALIDATION_SEED" (getenv "SELF"))}}"
+{{end}}
 
 TARGET_PEER_CONNECTIONS=20
 
