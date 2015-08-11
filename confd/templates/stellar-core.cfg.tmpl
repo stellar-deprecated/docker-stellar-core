@@ -52,8 +52,10 @@ UNSAFE_QUORUM={{getenv "UNSAFE_QUORUM"}}
 DATABASE="postgresql://dbname=stellar user=postgres password={{getenv "POSTGRES_PASSWORD"}} host=localhost port={{getenv (printf "%s_POSTGRES_PORT" (getenv "SELF"))}}"
 
 [QUORUM_SET]
-THRESHOLD={{getenv "QUORUM_THRESHOLD"}}
-VALIDATORS={{getenv "QUORUM_SET"}}
+{{if (getenv "THRESHOLD_PERCENT")}}
+THRESHOLD_PERCENT={{getenv "THRESHOLD_PERCENT"}}
+{{end}}
+VALIDATORS={{getenv "VALIDATORS"}}
 
 {{range jsonArray (getenv "HISTORY_PEERS")}}
 [HISTORY.{{.}}]
