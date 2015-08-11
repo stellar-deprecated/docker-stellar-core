@@ -2,8 +2,8 @@ FROM stellar/base:latest
 
 MAINTAINER Mat Schaffer <mat@stellar.org>
 
-EXPOSE 39133
-EXPOSE 39132
+EXPOSE 11625
+EXPOSE 11626
 
 VOLUME /data
 VOLUME /heka
