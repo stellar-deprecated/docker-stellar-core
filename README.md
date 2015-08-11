@@ -28,7 +28,7 @@ The use of `-v ~/.aws:/root/.aws` here mounts your local aws credentials into th
 You can check the cluster status with curl. The IP shown here is a typical boot2docker IP. Replace it with the IP of your docker host.
 
 ```sh
-watch 'echo 1 2 3 | xargs -n1 -I{} curl -s 192.168.59.103:3915{}/info'
+watch 'echo 6 7 3 | xargs -n1 -I{} curl -s 192.168.59.103:1162{}/info'
 ```
 
 Basic clean up involves simply wiping out all containers. S3 history must be removed seperately. Something like this should do the trick.
