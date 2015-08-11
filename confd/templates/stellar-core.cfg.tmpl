@@ -39,6 +39,16 @@ ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING={{getenv "ARTIFICIALLY_ACCELERATE_TIME_
 COMMANDS={{getenv "COMMANDS"}}
 {{end}}
 
+{{if (getenv "PARANOID_MODE")}}
+PARANOID_MODE={{getenv "PARANOID_MODE"}}
+{{end}}
+{{if (getenv "FAILURE_SAFETY")}}
+FAILURE_SAFETY={{getenv "FAILURE_SAFETY"}}
+{{end}}
+{{if (getenv "UNSAFE_QUORUM")}}
+UNSAFE_QUORUM={{getenv "UNSAFE_QUORUM"}}
+{{end}}
+
 DATABASE="postgresql://dbname=stellar user=postgres password={{getenv "POSTGRES_PASSWORD"}} host=localhost port={{getenv (printf "%s_POSTGRES_PORT" (getenv "SELF"))}}"
 
 [QUORUM_SET]
