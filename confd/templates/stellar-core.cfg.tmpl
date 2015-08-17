@@ -49,7 +49,7 @@ FAILURE_SAFETY={{getenv "FAILURE_SAFETY"}}
 UNSAFE_QUORUM={{getenv "UNSAFE_QUORUM"}}
 {{end}}
 
-DATABASE="postgresql://dbname=stellar user=postgres password={{getenv "POSTGRES_PASSWORD"}} host=localhost port={{getenv (printf "%s_POSTGRES_PORT" (getenv "SELF"))}}"
+DATABASE="postgresql://dbname=stellar user=postgres host=/postgresql-unix-sockets"
 
 [QUORUM_SET]
 {{if (getenv "THRESHOLD_PERCENT")}}

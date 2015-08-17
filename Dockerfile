@@ -8,6 +8,7 @@ EXPOSE 11625
 EXPOSE 11626
 
 VOLUME /data
+VOLUME /postgresql-unix-sockets
 VOLUME /heka
 
 ADD install /
