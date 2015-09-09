@@ -51,6 +51,12 @@ UNSAFE_QUORUM={{getenv "UNSAFE_QUORUM"}}
 
 DATABASE="postgresql://dbname=stellar user=postgres host=/postgresql-unix-sockets"
 
+{{if (getenv "NETWORK_PASSPHRASE")}}
+NETWORK_PASSPHRASE="{{getenv "NETWORK_PASSPHRASE"}}"
+{{else}}
+NETWORK_PASSPHRASE="Public Global Stellar Network ; September 2015"
+{{end}}
+
 [QUORUM_SET]
 {{if (getenv "THRESHOLD_PERCENT")}}
 THRESHOLD_PERCENT={{getenv "THRESHOLD_PERCENT"}}
@@ -68,10 +74,3 @@ mkdir="{{printf (getenv "HISTORY_MKDIR") (getenv "SELF")}}"
 {{end}}
 {{end}}
 
-
-
-{{if (getenv "NETWORK_PASSPHRASE")}}
-NETWORK_PASSPHRASE="{{getenv "NETWORK_PASSPHRASE"}}"
-{{else}}
-NETWORK_PASSPHRASE="Public Global Stellar Network ; September 2015"
-{{end}}
