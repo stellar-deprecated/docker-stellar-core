@@ -12,9 +12,9 @@ PUBLIC_HTTP_PORT=true
 CATCHUP_COMPLETE={{getenv "CATCHUP_COMPLETE"}}
 {{end}}
 
-PEER_SEED="{{getenv (printf "%s_PEER_SEED" (getenv "SELF"))}}"
-{{if (getenv (printf "%s_VALIDATION_SEED" (getenv "SELF")))}}
-VALIDATION_SEED="{{getenv (printf "%s_VALIDATION_SEED" (getenv "SELF"))}}"
+NODE_SEED="{{getenv (printf "%s_NODE_SEED" (getenv "SELF"))}}"
+{{if (getenv (printf "%s_NODE_IS_VALIDATOR" (getenv "SELF")))}}
+NODE_IS_VALIDATOR="{{getenv (printf "%s_NODE_IS_VALIDATOR" (getenv "SELF"))}}"
 {{end}}
 
 TARGET_PEER_CONNECTIONS=20
