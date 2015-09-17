@@ -13,8 +13,8 @@ CATCHUP_COMPLETE={{getenv "CATCHUP_COMPLETE"}}
 {{end}}
 
 NODE_SEED="{{getenv (printf "%s_NODE_SEED" (getenv "SELF"))}}"
-{{if (getenv (printf "%s_NODE_IS_VALIDATOR" (getenv "SELF")))}}
-NODE_IS_VALIDATOR="{{getenv (printf "%s_NODE_IS_VALIDATOR" (getenv "SELF"))}}"
+{{if (getenv "NODE_IS_VALIDATOR")}}
+NODE_IS_VALIDATOR="{{getenv "NODE_IS_VALIDATOR"}}"
 {{end}}
 
 TARGET_PEER_CONNECTIONS=20
