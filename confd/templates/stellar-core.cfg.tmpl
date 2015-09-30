@@ -12,7 +12,9 @@ PUBLIC_HTTP_PORT=true
 CATCHUP_COMPLETE={{getenv "CATCHUP_COMPLETE"}}
 {{end}}
 
+{{if (getenv (printf "%s_NODE_SEED" (getenv "SELF"))) }} 
 NODE_SEED="{{getenv (printf "%s_NODE_SEED" (getenv "SELF"))}}"
+{{end}}
 {{if (getenv "NODE_IS_VALIDATOR")}}
 NODE_IS_VALIDATOR={{getenv "NODE_IS_VALIDATOR"}}
 {{end}}
