@@ -47,3 +47,28 @@ cd stellar-core
 ./autogen.sh
 ./configure --enable-afl
 make -j $(nproc)
+
+# clean out objects post-build, rebuild with make -t (touch)
+find / -name \*.o | xargs rm
+find / -name \*.a | xargs rm
+make -t
+
+# purge stuff we don't directly need
+apt-get purge -y sgml-base manpages liblocale-gettext-perl libtext-{charwidth,iconv,wrapi18n}-perl krb5-locales \
+                 build-essential ucf gcc g++ xz-utils dbus gcc-4.9 g++-4.9
+apt-get autoremove -y
+apt-get clean
+
+# delete a handful of items we don't need and take up some actual space
+rm -rf /usr/share/locale/*
+rm -rf /usr/share/mime/*
+rm -rf /var/lib/apt/lists/*
+rm -rf /usr/lib/*/gconv/*.so
+rm -Rf /usr/lib/*/libicu*.so
+rm -rf /var/log/*.log /var/log/*/*.log
+rm -rf /usr/share/{file,man,doc}
+rm -rf /usr/lib/llvm-*/build /usr/share/llvm-*/cmake
+rm -rf /usr/lib/llvm-*/lib/*.a ./lib/x86_64-linux-gnu/*.a
+rm -rf /usr/lib/llvm-*/bin/{opt,lli,llc,llvm-tblgen,bugpoint,clang-*,pp-trace}
+rm -rf /usr/local/lib/python2.7/dist-packages/awscli/examples
+rm -rf /usr/share/postgresql/*/man
