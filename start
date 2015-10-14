@@ -22,12 +22,7 @@ while ! psql -c 'select 1' >/dev/null 2>&1; do
   sleep 1
 done
 
-while [[ -n "$1" ]]; do
-  COMMAND="$1"
-  shift
-
-  case "${COMMAND}" in
-  fresh)
+function newdb() {
     rm -rf /data/*
 
     dropdb stellar || true
@@ -53,7 +48,18 @@ SQL
     fi
 
     stellar-core --newdb
+}
 
+while [[ -n "$1" ]]; do
+  COMMAND="$1"
+  shift
+
+  case "${COMMAND}" in
+  newdb)
+    newdb
+    ;;
+  fresh)
+    newdb
     [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
     [[ -n "${HISTORY_PUT}" ]] && stellar-core --newhist "${SELF}"
     ;;
