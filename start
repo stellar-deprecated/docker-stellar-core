@@ -75,8 +75,12 @@ while [[ -n "$1" ]]; do
   esac
 done
 
+if [[ -f "/stellar-core-override.cfg" ]]; then
+  $CONFIG_OPTION="--conf /stellar-core-override.cfg"
+fi
+
 if [[ -z "${SKIP_START}" ]]; then
-  exec /init -- stellar-core
+  exec /init -- stellar-core $CONFIG_OPTION
 else
   echo "Setup complete. Skipping server start."
 fi
