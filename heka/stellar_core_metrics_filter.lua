@@ -8,6 +8,9 @@ local environment = read_config("environment")
 local node = read_config("node")
 local cluster = read_config("cluster")
 
+-- how many metrics to load into a single influx/atlas payload
+local max_metrics = read_config("max_metrics") or 80
+
 local latest_stats = {}
 
 function process_message()
@@ -44,15 +47,18 @@ function process_message()
 end
 
 function send_to_influx(ns)
-  local message = {
-    Timestamp = ns,
-    Type = "stellar.core.metrics.influx"
-  }
-
   local time = math.floor(ns / 1000000)
   local output = {}
 
+  local queued_metrics = 0
+
   for name, stats in pairs(latest_stats) do
+    if queued_metrics >= max_metrics then
+      inject_for_influx(ns, output)
+      output = {}
+      queued_metrics = 0
+    end
+
     name = environment .. "." .. node .. "." .. name
 
     local point_set = {
@@ -67,10 +73,19 @@ function send_to_influx(ns)
     end
 
     table.insert(output, point_set)
+    queued_metrics = queued_metrics + 1
   end
 
-  -- Only inject if we have metrics to send
+  inject_for_influx(ns, output)
+end
+
+function inject_for_influx(ns, output)
   if next(output) then
+    local message = {
+      Timestamp = ns,
+      Type = "stellar.core.metrics.influx"
+    }
+
     message.Payload = cjson.encode(output)
 
     inject_message(message)
@@ -78,11 +93,6 @@ function send_to_influx(ns)
 end
 
 function send_to_atlas(ns)
-  local message = {
-    Timestamp = ns,
-    Type = "stellar.core.metrics.atlas"
-  }
-
   local time = math.floor(ns / 1000000)
   local output = {
     tags = {
@@ -95,7 +105,14 @@ function send_to_atlas(ns)
     }
   }
 
+  local queued_metrics = 0
+
   for name, stats in pairs(latest_stats) do
+    if queued_metrics >= max_metrics then
+      inject_for_atlas(ns, output)
+      output.metrics = {}
+      queued_metrics = 0
+    end
     for stat, value in pairs(stats) do
       local metric_payload = {
         tags = {
@@ -108,10 +125,19 @@ function send_to_atlas(ns)
       }
       table.insert(output.metrics, metric_payload)
     end
+    queued_metrics = queued_metrics + 1
   end
 
-  -- Only inject if we have metrics to send
+  inject_for_atlas(ns, output)
+end
+
+function inject_for_atlas(ns, output)
   if next(output.metrics) then
+    local message = {
+      Timestamp = ns,
+      Type = "stellar.core.metrics.atlas"
+    }
+
     message.Payload = cjson.encode(output)
 
     inject_message(message)
