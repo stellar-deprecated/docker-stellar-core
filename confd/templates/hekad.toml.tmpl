@@ -69,3 +69,10 @@ stderr = true
 
 [DashboardOutput]
 ticker_interval = 1
+
+[DebugOutput]
+message_matcher = "Type == 'heka.sandbox-terminated'"
+type = "LogOutput"
+encoder = "RstEncoder"
+
+[RstEncoder]
