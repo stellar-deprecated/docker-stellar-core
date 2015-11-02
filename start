@@ -63,6 +63,10 @@ while [[ -n "$1" ]]; do
     [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
     [[ -n "${HISTORY_PUT}" ]] && stellar-core --newhist "${SELF}"
     ;;
+  newhist)
+    [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core --newhist "${SELF}"
+    ;;
   forcescp)
     stellar-core --forcescp
     ;;
