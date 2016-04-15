@@ -8,7 +8,7 @@ add-apt-repository "deb http://llvm.org/apt/jessie/ llvm-toolchain-jessie-3.6 ma
 
 apt-get update
 
-apt-get install -y libstdc++6 libpq5 lldb-3.6
+apt-get install -y libstdc++6 libpq5 lldb-3.6 curl
 
 apt-get install -y python-pip
 pip install awscli # for uploading history to s3
