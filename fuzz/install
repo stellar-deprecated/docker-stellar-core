@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+set -e
+
+apt-get update
+
+apt-get install -y \
+  make \
+  git \
+  gcc \
+  autoconf \
+  automake \
+  libtool \
+  pkg-config \
+  flex \
+  bison \
+  clang-3.5 \
+  llvm-3.5 \
+  g++-4.9 \
+  libstdc++6 \
+  libpq5 \
+  libpq-dev
+
+update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
+update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.5 90 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-3.5
+update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-3.5 90
+update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-3.5 90
+
+# for the core_file_processor
+apt-get install -y python-pip
+pip install boto
+
+# for the fuzzer
+wget -nv -O afl-${AFL_VERSION}.tgz http://lcamtuf.coredump.cx/afl/releases/afl-${AFL_VERSION}.tgz
+tar -zxf afl-${AFL_VERSION}.tgz
+cd afl-${AFL_VERSION}
+make
+make -C llvm_mode
+make install
+cd ..
+rm -rf afl-${AFL_VERSION}
+rm afl-${AFL_VERSION}.tgz
+
+# build stellar-core under fuzzer
+git clone https://github.com/stellar/stellar-core stellar-core
+cd stellar-core
+./autogen.sh
+./configure --enable-afl
+make -j $(nproc)
+
+# clean out objects post-build, rebuild with make -t (touch)
+find / -name \*.o | xargs rm
+find / -name \*.a | xargs rm
+make -t
+
+# purge stuff we don't directly need
+apt-get purge -y sgml-base manpages liblocale-gettext-perl libtext-{charwidth,iconv,wrapi18n}-perl krb5-locales \
+                 build-essential ucf gcc g++ xz-utils dbus gcc-4.9 g++-4.9
+apt-get autoremove -y
+apt-get clean
+
+# delete a handful of items we don't need and take up some actual space
+rm -rf /usr/share/locale/*
+rm -rf /usr/share/mime/*
+rm -rf /var/lib/apt/lists/*
+rm -rf /usr/lib/*/gconv/*.so
+rm -Rf /usr/lib/*/libicu*.so
+rm -rf /var/log/*.log /var/log/*/*.log
+rm -rf /usr/share/{file,man,doc}
+rm -rf /usr/lib/llvm-*/build /usr/share/llvm-*/cmake
+rm -rf /usr/lib/llvm-*/lib/*.a ./lib/x86_64-linux-gnu/*.a
+rm -rf /usr/lib/llvm-*/bin/{opt,lli,llc,llvm-tblgen,bugpoint,clang-*,pp-trace}
+rm -rf /usr/local/lib/python2.7/dist-packages/awscli/examples
+rm -rf /usr/share/postgresql/*/man

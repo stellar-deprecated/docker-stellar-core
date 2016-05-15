@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+set -e
+
+export SELF="$1"
+
+if [[ -z "${SELF}" ]]; then
+  echo "Usage: $0 <node> [commands...]" >&2
+  exit 1
+fi
+
+shift
+
+export CONTAINER_ID=$(grep cpu: /proc/self/cgroup | awk -F/ '{ print $3 }')
+
+confd -onetime -backend=env
+
+source /etc/profile
+
+while ! psql -c 'select 1' >/dev/null 2>&1; do
+  echo "Waiting for postgres to be available..."
+  sleep 1
+done
+
+function newdb() {
+    rm -rf /data/*
+
+    dropdb stellar || true
+    createdb stellar
+
+    if [[ -n "${HORIZON_PASSWORD}" ]]; then
+      dropuser horizon || true
+      createuser horizon
+      psql -c "alter user horizon with password '${HORIZON_PASSWORD}'"
+      psql >/dev/null <<-SQL
+         GRANT CONNECT ON DATABASE stellar to horizon;
+         \c stellar
+         REVOKE ALL ON schema public FROM public;
+         GRANT ALL ON schema public TO postgres;
+         GRANT USAGE ON SCHEMA public to horizon;
+
+         GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO horizon;
+         GRANT SELECT ON ALL TABLES IN SCHEMA public TO horizon;
+
+         ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON SEQUENCES TO horizon;
+         ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON TABLES TO horizon;
+SQL
+    fi
+
+    stellar-core --newdb
+}
+
+while [[ -n "$1" ]]; do
+  COMMAND="$1"
+  shift
+
+  case "${COMMAND}" in
+  newdb)
+    newdb
+    ;;
+  fresh)
+    newdb
+    [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core --newhist "${SELF}"
+    ;;
+  newhist)
+    [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core --newhist "${SELF}"
+    ;;
+  forcescp)
+    stellar-core --forcescp
+    ;;
+  skipstart)
+    SKIP_START=true
+    ;;
+  *)
+    echo "Unknown container command $COMMAND" >&2
+    exit 1
+  esac
+done
+
+if [[ -f "/stellar-core-override.cfg" ]]; then
+  CONFIG_OPTION="--conf /stellar-core-override.cfg"
+fi
+
+if [[ -z "${SKIP_START}" ]]; then
+  exec /init -- stellar-core $CONFIG_OPTION
+else
+  echo "Setup complete. Skipping server start."
+fi

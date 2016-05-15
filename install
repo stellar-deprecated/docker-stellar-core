@@ -8,10 +8,11 @@ add-apt-repository "deb http://llvm.org/apt/jessie/ llvm-toolchain-jessie-3.6 ma
 
 apt-get update
 
-apt-get install -y libstdc++6 libpq5 lldb-3.6
+apt-get install -y libstdc++6 libpq5 lldb-3.6 curl
 
 apt-get install -y python-pip
-pip install awscli
+pip install awscli # for uploading history to s3
+pip install boto   # for sending crash emails
 
 apt-get install -y postgresql-client
 
@@ -20,5 +21,22 @@ apt-get install -y postgresql-client
 dpkg -i stellar-core.deb
 rm stellar-core.deb
 
+# purge stuff we don't directly need
+apt-get purge -y sgml-base ucf gcc g++ xz-utils libpod-latex-perl dbus
+apt-get autoremove -y
+
+# put back 2 needed awscli packages
+apt-get install -y python-six python-colorama
+
 apt-get clean
 rm -rf /var/lib/apt/lists/*
+rm -rf /var/log/*.log /var/log/*/*.log
+
+# delete a handful of items we don't need and take up some actual space
+rm -rf /usr/include
+rm -rf /usr/share/{file,man,doc}
+rm -rf /usr/lib/llvm-3.6/build /usr/share/llvm-3.6/cmake
+rm -rf /usr/lib/llvm-3.6/lib/*.a ./lib/x86_64-linux-gnu/*.a
+rm -rf /usr/lib/llvm-3.6/bin/{opt,lli,llc,llvm-tblgen,bugpoint}
+rm -rf /usr/local/lib/python2.7/dist-packages/awscli/examples
+rm -rf /usr/share/postgresql/*/man

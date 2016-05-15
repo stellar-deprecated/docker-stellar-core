@@ -1,4 +1,3 @@
-export PGHOST=localhost
-export PGPORT={{getenv (printf "%s_POSTGRES_PORT" (getenv "SELF"))}}
+export PGHOST=/postgresql-unix-sockets
 export PGDATABASE=postgres
 export PGUSER=postgres

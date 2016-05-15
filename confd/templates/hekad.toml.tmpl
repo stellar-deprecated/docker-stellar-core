@@ -10,7 +10,7 @@ ticker_interval = 1
 type = "SandboxFilter"
 message_matcher = "Type == 'heka.httpinput.data'"
 filename = "/heka/stellar_core_metrics_filter.lua"
-ticker_interval = 60
+ticker_interval = {{or (getenv "METRICS_INTERVAL") 60}}
   [StellarCoreMetricsFilter.config]
   environment = "{{getenv "ENVIRONMENT"}}"
   cluster = "{{getenv "CLUSTER_NAME"}}"
@@ -36,7 +36,43 @@ encoder = "PayloadEncoder"
   Content-Type = ["application/json"]
 {{end}}
 
+{{if (getenv "CORE_ALERT_RECIPIENT")}}
+[NullSplitter]
+
+[CoreFileProcessor]
+type = "ProcessInput"
+ticker_interval = 30
+splitter = "NullSplitter"
+stdout = true
+stderr = true
+  [CoreFileProcessor.command.0]
+  bin = "docker"
+  args = ["run",
+          "--net", "host",
+          "-e", "CORE_ALERT_RECIPIENT={{getenv "CORE_ALERT_RECIPIENT"}}",
+          "-e", "CORE_ARCHIVE_COMMAND={{getenv "CORE_ARCHIVE_COMMAND"}}",
+          "-e", "CORE_LOG_FILTER={{getenv "CONTAINER_ID" | printf "%.12s"}}",
+          {{if (getenv "AWS_CREDENTIAL_SOURCE")}}
+          "-v", "{{getenv "AWS_CREDENTIAL_SOURCE"}}:/root/.aws:ro",
+          {{end}}
+          "-v", "/var/log/syslog:/host/syslog:ro",
+          "--volumes-from", "{{getenv "CONTAINER_ID"}}",
+          {{if (getenv "USE_SYSLOG")}}
+          "--log-driver", "syslog",
+          {{end}}
+          "-t", "--rm",
+          "stellar/stellar-core",
+          "/utils/core_file_processor.py"]
+{{end}}
+
 [PayloadEncoder]
 
 [DashboardOutput]
 ticker_interval = 1
+
+[DebugOutput]
+message_matcher = "Type == 'heka.sandbox-terminated'"
+type = "LogOutput"
+encoder = "RstEncoder"
+
+[RstEncoder]

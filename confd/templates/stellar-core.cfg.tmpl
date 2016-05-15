@@ -1,7 +1,7 @@
 PEER_PORT={{getenv (printf "%s_PEER_PORT" (getenv "SELF"))}}
 
 RUN_STANDALONE=false
-LOG_FILE_PATH="favorite.log"
+LOG_FILE_PATH="{{getenv "LOG_FILE_PATH"}}"
 BUCKET_DIR_PATH="/data/buckets"
 TMP_DIR_PATH="/data/tmp"
 
@@ -12,28 +12,86 @@ PUBLIC_HTTP_PORT=true
 CATCHUP_COMPLETE={{getenv "CATCHUP_COMPLETE"}}
 {{end}}
 
-PEER_SEED="{{getenv (printf "%s_PEER_SEED" (getenv "SELF"))}}"
-VALIDATION_SEED="{{getenv (printf "%s_VALIDATION_SEED" (getenv "SELF"))}}"
+{{if (getenv "CATCHUP_RECENT")}}
+CATCHUP_RECENT={{getenv "CATCHUP_RECENT"}}
+{{end}}
 
+{{if (getenv (printf "%s_NODE_SEED" (getenv "SELF"))) }} 
+NODE_SEED="{{getenv (printf "%s_NODE_SEED" (getenv "SELF"))}}"
+{{end}}
+{{if (getenv "NODE_IS_VALIDATOR")}}
+NODE_IS_VALIDATOR={{getenv "NODE_IS_VALIDATOR"}}
+{{end}}
+
+{{if (getenv "TARGET_PEER_CONNECTIONS")}}
+TARGET_PEER_CONNECTIONS={{getenv "TARGET_PEER_CONNECTIONS"}}
+{{else}}
 TARGET_PEER_CONNECTIONS=20
+{{end}}
 
+{{if (getenv "MAX_PEER_CONNECTIONS")}}
+MAX_PEER_CONNECTIONS={{getenv "MAX_PEER_CONNECTIONS"}}
+{{else}}
 MAX_PEER_CONNECTIONS=30
+{{end}}
 
+{{if (getenv "MAX_CONCURRENT_SUBPROCESSES")}}
+MAX_CONCURRENT_SUBPROCESSES={{getenv "MAX_CONCURRENT_SUBPROCESSES"}}
+{{else}}
+MAX_CONCURRENT_SUBPROCESSES=64
+{{end}}
+
+{{if (getenv "PREFERRED_PEERS")}}
 PREFERRED_PEERS={{getenv "PREFERRED_PEERS"}}
+{{end}}
+
+{{if (getenv "KNOWN_PEERS")}}
+KNOWN_PEERS={{getenv "KNOWN_PEERS"}}
+{{end}}
 
 {{if (getenv "MANUAL_CLOSE")}}
 MANUAL_CLOSE={{getenv "MANUAL_CLOSE"}}
+{{end}}
+
+{{if (getenv "DESIRED_MAX_TX_PER_LEDGER")}}
+DESIRED_MAX_TX_PER_LEDGER={{getenv "DESIRED_MAX_TX_PER_LEDGER"}}
+{{end}}
+
+{{if (getenv "ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING")}}
+ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING={{getenv "ARTIFICIALLY_GENERATE_LOAD_FOR_TESTING"}}
+{{end}}
+
+{{if (getenv "ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING")}}
+ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING={{getenv "ARTIFICIALLY_ACCELERATE_TIME_FOR_TESTING"}}
 {{end}}
 
 {{if (getenv "COMMANDS")}}
 COMMANDS={{getenv "COMMANDS"}}
 {{end}}
 
-DATABASE="postgresql://dbname=stellar user=postgres password={{getenv "POSTGRES_PASSWORD"}} host=localhost port={{getenv (printf "%s_POSTGRES_PORT" (getenv "SELF"))}}"
+{{if (getenv "PARANOID_MODE")}}
+PARANOID_MODE={{getenv "PARANOID_MODE"}}
+{{end}}
+{{if (getenv "FAILURE_SAFETY")}}
+FAILURE_SAFETY={{getenv "FAILURE_SAFETY"}}
+{{end}}
+{{if (getenv "UNSAFE_QUORUM")}}
+UNSAFE_QUORUM={{getenv "UNSAFE_QUORUM"}}
+{{end}}
+
+DATABASE="postgresql://dbname=stellar user=postgres host=/postgresql-unix-sockets"
+
+{{if (getenv "NETWORK_PASSPHRASE")}}
+NETWORK_PASSPHRASE="{{getenv "NETWORK_PASSPHRASE"}}"
+{{else}}
+NETWORK_PASSPHRASE="Public Global Stellar Network ; September 2015"
+{{end}}
 
 [QUORUM_SET]
-THRESHOLD={{getenv "QUORUM_THRESHOLD"}}
-VALIDATORS={{getenv "QUORUM_SET"}}
+{{if (getenv "THRESHOLD_PERCENT")}}
+THRESHOLD_PERCENT={{getenv "THRESHOLD_PERCENT"}}
+{{end}}
+VALIDATORS={{getenv "VALIDATORS"}}
 
 {{range jsonArray (getenv "HISTORY_PEERS")}}
 [HISTORY.{{.}}]
