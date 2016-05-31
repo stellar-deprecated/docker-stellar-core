@@ -39,22 +39,18 @@ docker ps -a | egrep '(node|db)\d+' | awk '{ print $1 }' | xargs -n1 docker rm -
 
 ## Single node configurations
 
-> **NOTE:** The commands below are pinned to version 0.0.1-62-5f94fa02 to match testnet.
-> 
-> This is to avoid key format issues following the merge of https://github.com/stellar/stellar-core/pull/619. This tag should be removed once testnet is updated.
-
 ### Catch up complete with SDF testnet
 
 ```
 docker run --name db_compat_complete -p 5541:5432 --env-file examples/compat_complete.env -d stellar/stellar-core-state
-docker run --name compat_complete --net host --volumes-from db_compat_complete --env-file examples/compat_complete.env -d stellar/stellar-core:0.0.1-62-5f94fa02 /start compat_complete fresh
+docker run --name compat_complete --net host --volumes-from db_compat_complete --env-file examples/compat_complete.env -d stellar/stellar-core:latest /start compat_complete fresh
 ```
 
 ### Catch up minimal with SDF testnet
 
 ```
 docker run --name db_compat_minimal -p 5641:5432 --env-file examples/compat_minimal.env -d stellar/stellar-core-state
-docker run --name compat_minimal --net host --volumes-from db_compat_minimal --env-file examples/compat_minimal.env -d stellar/stellar-core:0.0.1-62-5f94fa02 /start compat_minimal fresh
+docker run --name compat_minimal --net host --volumes-from db_compat_minimal --env-file examples/compat_minimal.env -d stellar/stellar-core:latest /start compat_minimal fresh
 ```
 
 ### Single node local network (with monitoring)
@@ -116,3 +112,10 @@ On docker-machine you can specify engine options when creating the machine, then
     "sudo sh -c 'echo \"/cores/%e_%h_%s_%p_%t.core\" > /proc/sys/kernel/core_pattern'"
 ```
 
+## Logs
+
+To display container logs use:
+
+```
+docker logs -f [container_name]
+```
