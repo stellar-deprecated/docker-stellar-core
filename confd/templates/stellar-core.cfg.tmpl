@@ -3,7 +3,6 @@ PEER_PORT={{getenv (printf "%s_PEER_PORT" (getenv "SELF"))}}
 RUN_STANDALONE=false
 LOG_FILE_PATH="{{getenv "LOG_FILE_PATH"}}"
 BUCKET_DIR_PATH="/data/buckets"
-TMP_DIR_PATH="/data/tmp"
 
 HTTP_PORT={{getenv (printf "%s_HTTP_PORT" (getenv "SELF"))}}
 PUBLIC_HTTP_PORT=true
