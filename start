@@ -77,6 +77,34 @@ while [[ -n "$1" ]]; do
   catchupcomplete)
     stellar-core $CONFIG_OPTION --catchup-complete
     ;;
+  catchuprange)
+    FROM=$1
+    shift
+    TO=$1
+    shift
+    if [ "${FROM}" -eq "${FROM}" -a "${TO}" -eq "${TO}" ]; then
+        OUTPUT=$1
+        if [[ "${OUTPUT}" ]]; then
+            stellar-core $CONFIG_OPTION --catchup-at $FROM --catchup-to $TO --output-file "${OUTPUT}"
+            shift
+        else
+            stellar-core $CONFIG_OPTION --catchup-at $FROM --catchup-to $TO
+        fi
+    else
+      echo "Valid ledger range required" >&2
+      exit 1
+    fi
+    ;;
+  lasthistorycheckpoint)
+    OUTPUT=$1
+    if [[ "${OUTPUT}" ]]; then
+        stellar-core $CONFIG_OPTION --report-last-history-checkpoint --output-file "${OUTPUT}"
+        shift
+    else
+        stellar-core $CONFIG_OPTION --report-last-history-checkpoint
+    fi
+    SKIP_START=true
+    ;;
   skipstart)
     SKIP_START=true
     ;;
