@@ -17,6 +17,10 @@ confd -onetime -backend=env
 
 source /etc/profile
 
+if [[ -f "/stellar-core-override.cfg" ]]; then
+  CONFIG_OPTION="--conf /stellar-core-override.cfg"
+fi
+
 while ! psql -c 'select 1' >/dev/null 2>&1; do
   echo "Waiting for postgres to be available..."
   sleep 1
@@ -47,7 +51,7 @@ function newdb() {
 SQL
     fi
 
-    stellar-core --newdb
+    stellar-core $CONFIG_OPTION --newdb
 }
 
 while [[ -n "$1" ]]; do
@@ -61,17 +65,17 @@ while [[ -n "$1" ]]; do
   fresh)
     newdb
     [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
-    [[ -n "${HISTORY_PUT}" ]] && stellar-core --newhist "${SELF}"
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core $CONFIG_OPTION --newhist "${SELF}"
     ;;
   newhist)
     [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
-    [[ -n "${HISTORY_PUT}" ]] && stellar-core --newhist "${SELF}"
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core $CONFIG_OPTION --newhist "${SELF}"
     ;;
   forcescp)
-    stellar-core --forcescp
+    stellar-core $CONFIG_OPTION --forcescp
     ;;
   catchupcomplete)
-    stellar-core --catchup-complete
+    stellar-core $CONFIG_OPTION --catchup-complete
     ;;
   skipstart)
     SKIP_START=true
@@ -81,10 +85,6 @@ while [[ -n "$1" ]]; do
     exit 1
   esac
 done
-
-if [[ -f "/stellar-core-override.cfg" ]]; then
-  CONFIG_OPTION="--conf /stellar-core-override.cfg"
-fi
 
 if [[ -z "${SKIP_START}" ]]; then
   exec /init -- stellar-core $CONFIG_OPTION
