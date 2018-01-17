@@ -71,7 +71,11 @@ FAILURE_SAFETY={{getenv "FAILURE_SAFETY"}}
 UNSAFE_QUORUM={{getenv "UNSAFE_QUORUM"}}
 {{end}}
 
+{{if (getenv "DATABASE")}}
+DATABASE="{{getenv "DATABASE"}}"
+{{else}}
 DATABASE="postgresql://dbname=stellar user=postgres host=/postgresql-unix-sockets"
+{{end}}
 
 {{if (getenv "NETWORK_PASSPHRASE")}}
 NETWORK_PASSPHRASE="{{getenv "NETWORK_PASSPHRASE"}}"
