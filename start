@@ -21,10 +21,14 @@ if [[ -f "/stellar-core-override.cfg" ]]; then
   CONFIG_OPTION="--conf /stellar-core-override.cfg"
 fi
 
-while ! psql -c 'select 1' >/dev/null 2>&1; do
-  echo "Waiting for postgres to be available..."
-  sleep 1
-done
+if [[ "$1" == "nopsql" ]]; then
+    shift
+else
+    while ! psql -c 'select 1' >/dev/null 2>&1; do
+        echo "Waiting for postgres to be available..."
+        sleep 1
+    done
+fi
 
 function newdb() {
     rm -rf /data/*
