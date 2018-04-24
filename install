@@ -2,13 +2,16 @@
 
 set -e
 
-wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | apt-key add -
+wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 
-add-apt-repository "deb http://llvm.org/apt/jessie/ llvm-toolchain-jessie-3.6 main"
+add-apt-repository "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch main"
+add-apt-repository "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-5.0 main"
+
+export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
 
-apt-get install -y libstdc++6 libpq5 lldb-3.6 curl
+apt-get install -y libstdc++6 libpq5 lldb-5.0 curl
 
 apt-get install -y python-pip
 pip install awscli # for uploading history to s3
@@ -35,8 +38,8 @@ rm -rf /var/log/*.log /var/log/*/*.log
 # delete a handful of items we don't need and take up some actual space
 rm -rf /usr/include
 rm -rf /usr/share/{file,man,doc}
-rm -rf /usr/lib/llvm-3.6/build /usr/share/llvm-3.6/cmake
-rm -rf /usr/lib/llvm-3.6/lib/*.a ./lib/x86_64-linux-gnu/*.a
-rm -rf /usr/lib/llvm-3.6/bin/{opt,lli,llc,llvm-tblgen,bugpoint}
+rm -rf /usr/lib/llvm-5.0/build /usr/share/llvm-5.0/cmake
+rm -rf /usr/lib/llvm-5.0/lib/*.a ./lib/x86_64-linux-gnu/*.a
+rm -rf /usr/lib/llvm-5.0/bin/{opt,lli,llc,llvm-tblgen,bugpoint}
 rm -rf /usr/local/lib/python2.7/dist-packages/awscli/examples
 rm -rf /usr/share/postgresql/*/man
