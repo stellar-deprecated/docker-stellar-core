@@ -14,17 +14,17 @@ apt-get install -y \
   pkg-config \
   flex \
   bison \
-  clang-3.5 \
-  llvm-3.5 \
-  g++-4.9 \
+  clang-5.0 \
+  llvm-5.0 \
+  g++ \
   libstdc++6 \
   libpq5 \
   libpq-dev
 
-update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
-update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.5 90 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-3.5
-update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-3.5 90
-update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-3.5 90
+update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 90 --slave /usr/bin/g++ g++ /usr/bin/g++-6
+update-alternatives --install /usr/bin/clang clang /usr/bin/clang-5.0 90 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-5.0
+update-alternatives --install /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-5.0 90
+update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-5.0 90
 
 # for the core_file_processor
 apt-get install -y python-pip
@@ -55,7 +55,7 @@ make -t
 
 # purge stuff we don't directly need
 apt-get purge -y sgml-base manpages liblocale-gettext-perl libtext-{charwidth,iconv,wrapi18n}-perl krb5-locales \
-                 build-essential ucf gcc g++ xz-utils dbus gcc-4.9 g++-4.9
+                 build-essential ucf gcc g++ xz-utils dbus gcc-6 g++-6
 apt-get autoremove -y
 apt-get clean
 

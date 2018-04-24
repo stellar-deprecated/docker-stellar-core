@@ -9,10 +9,12 @@ if [[ -z "${CORES}" ]]; then
   exit 0
 fi
 
-wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | apt-key add -
-add-apt-repository "deb http://llvm.org/apt/jessie/ llvm-toolchain-jessie-3.6 main"
+wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+
+add-apt-repository "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch main"
+add-apt-repository "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-5.0 main"
 apt-get update -qq
-apt-get install -qq libstdc++6 libpq5 lldb-3.6
+apt-get install -qq libstdc++6 libpq5 lldb-5.0
 
 cat > /etc/core_file_processor.ini <<INI
 [Config]
