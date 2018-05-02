@@ -22,6 +22,7 @@ if [[ -f "/stellar-core-override.cfg" ]]; then
 fi
 
 if [[ "$1" == "nopsql" ]]; then
+    NOPSQL=true
     shift
 else
     while ! psql -c 'select 1' >/dev/null 2>&1; do
@@ -33,26 +34,30 @@ fi
 function newdb() {
     rm -rf /data/*
 
-    dropdb stellar || true
-    createdb stellar
+    if [[ -z "${NOPSQL}" ]]; then
 
-    if [[ -n "${HORIZON_PASSWORD}" ]]; then
-      dropuser horizon || true
-      createuser horizon
-      psql -c "alter user horizon with password '${HORIZON_PASSWORD}'"
-      psql >/dev/null <<-SQL
-         GRANT CONNECT ON DATABASE stellar to horizon;
-         \c stellar
-         REVOKE ALL ON schema public FROM public;
-         GRANT ALL ON schema public TO postgres;
-         GRANT USAGE ON SCHEMA public to horizon;
+      dropdb stellar || true
+      createdb stellar
 
-         GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO horizon;
-         GRANT SELECT ON ALL TABLES IN SCHEMA public TO horizon;
+      if [[ -n "${HORIZON_PASSWORD}" ]]; then
+        dropuser horizon || true
+        createuser horizon
+        psql -c "alter user horizon with password '${HORIZON_PASSWORD}'"
+        psql >/dev/null <<-SQL
+           GRANT CONNECT ON DATABASE stellar to horizon;
+           \c stellar
+           REVOKE ALL ON schema public FROM public;
+           GRANT ALL ON schema public TO postgres;
+           GRANT USAGE ON SCHEMA public to horizon;
 
-         ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON SEQUENCES TO horizon;
-         ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON TABLES TO horizon;
+           GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO horizon;
+           GRANT SELECT ON ALL TABLES IN SCHEMA public TO horizon;
+
+           ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON SEQUENCES TO horizon;
+           ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON TABLES TO horizon;
 SQL
+      fi
+
     fi
 
     stellar-core $CONFIG_OPTION --newdb
