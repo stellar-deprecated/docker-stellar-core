@@ -104,6 +104,38 @@ while [[ -n "$1" ]]; do
       exit 1
     fi
     ;;
+  catchupat)
+    AT=$1
+    shift
+    if [[ "${AT}" == "current" || "${AT}" -eq "${AT}" ]]; then
+        OUTPUT=$1
+        if [[ "${OUTPUT}" ]]; then
+            stellar-core $CONFIG_OPTION --catchup-at $AT --output-file "${OUTPUT}"
+            shift
+        else
+            stellar-core $CONFIG_OPTION --catchup-at $AT
+        fi
+    else
+      echo "Valid ledger required" >&2
+      exit 1
+    fi
+    ;;
+  catchupto)
+    TO=$1
+    shift
+    if [[ "${TO}" == "current" || "${TO}" -eq "${TO}" ]]; then
+        OUTPUT=$1
+        if [[ "${OUTPUT}" ]]; then
+            stellar-core $CONFIG_OPTION --catchup-to $TO --output-file "${OUTPUT}"
+            shift
+        else
+            stellar-core $CONFIG_OPTION --catchup-to $TO
+        fi
+    else
+      echo "Valid ledger required" >&2
+      exit 1
+    fi
+    ;;
   lasthistorycheckpoint)
     OUTPUT=$1
     if [[ "${OUTPUT}" ]]; then
