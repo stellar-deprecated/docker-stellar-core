@@ -11,6 +11,9 @@ VOLUME /data
 VOLUME /postgresql-unix-sockets
 VOLUME /heka
 
+ADD apt/sources.list.d/ /etc/apt/sources.list.d/
+ADD apt/preferences.d/ /etc/apt/preferences.d/
+
 ADD install /
 RUN /install
 

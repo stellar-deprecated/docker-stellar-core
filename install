@@ -11,7 +11,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
 
-apt-get install -y libstdc++6 libpq5 lldb-5.0 curl
+# pull in libstdc++ from Debian testing (Buster)
+apt-get install -y libstdc++6=8.2.0-8 gcc-8-base=8.2.0-8 libpq5 lldb-5.0 curl
 
 apt-get install -y python-pip
 pip install awscli --upgrade  # for uploading history to s3
