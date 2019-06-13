@@ -60,7 +60,7 @@ SQL
 
     fi
 
-    stellar-core $CONFIG_OPTION --newdb
+    stellar-core $CONFIG_OPTION new-db
 }
 
 while [[ -n "$1" ]]; do
@@ -74,17 +74,17 @@ while [[ -n "$1" ]]; do
   fresh)
     newdb
     [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
-    [[ -n "${HISTORY_PUT}" ]] && stellar-core $CONFIG_OPTION --newhist "${SELF}"
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core $CONFIG_OPTION new-hist "${SELF}"
     ;;
   newhist)
     [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
-    [[ -n "${HISTORY_PUT}" ]] && stellar-core $CONFIG_OPTION --newhist "${SELF}"
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core $CONFIG_OPTION new-hist "${SELF}"
     ;;
   forcescp)
-    stellar-core $CONFIG_OPTION --forcescp
+    stellar-core $CONFIG_OPTION force-scp
     ;;
   catchupcomplete)
-    stellar-core $CONFIG_OPTION --catchup-complete
+    stellar-core $CONFIG_OPTION catchup current/max
     ;;
   catchuprange)
     FROM=$1
@@ -93,11 +93,12 @@ while [[ -n "$1" ]]; do
     shift
     if [ "${FROM}" -eq "${FROM}" -a "${TO}" -eq "${TO}" ]; then
         OUTPUT=$1
+        COUNT=$((TO-FROM+1))
         if [[ "${OUTPUT}" ]]; then
-            stellar-core $CONFIG_OPTION --catchup-at $FROM --catchup-to $TO --output-file "${OUTPUT}"
+            stellar-core $CONFIG_OPTION catchup $TO/$COUNT --output-file "${OUTPUT}"
             shift
         else
-            stellar-core $CONFIG_OPTION --catchup-at $FROM --catchup-to $TO
+            stellar-core $CONFIG_OPTION catchup $TO/$COUNT
         fi
     else
       echo "Valid ledger range required" >&2
@@ -110,10 +111,10 @@ while [[ -n "$1" ]]; do
     if [[ "${AT}" == "current" || "${AT}" -eq "${AT}" ]]; then
         OUTPUT=$1
         if [[ "${OUTPUT}" ]]; then
-            stellar-core $CONFIG_OPTION --catchup-at $AT --output-file "${OUTPUT}"
+            stellar-core $CONFIG_OPTION catchup $AT/0 --output-file "${OUTPUT}"
             shift
         else
-            stellar-core $CONFIG_OPTION --catchup-at $AT
+            stellar-core $CONFIG_OPTION catchup $AT/0
         fi
     else
       echo "Valid ledger required" >&2
@@ -126,10 +127,10 @@ while [[ -n "$1" ]]; do
     if [[ "${TO}" == "current" || "${TO}" -eq "${TO}" ]]; then
         OUTPUT=$1
         if [[ "${OUTPUT}" ]]; then
-            stellar-core $CONFIG_OPTION --catchup-to $TO --output-file "${OUTPUT}"
+            stellar-core $CONFIG_OPTION catchup $TO/max --output-file "${OUTPUT}"
             shift
         else
-            stellar-core $CONFIG_OPTION --catchup-to $TO
+            stellar-core $CONFIG_OPTION catchup $TO/max
         fi
     else
       echo "Valid ledger required" >&2
@@ -139,10 +140,10 @@ while [[ -n "$1" ]]; do
   lasthistorycheckpoint)
     OUTPUT=$1
     if [[ "${OUTPUT}" ]]; then
-        stellar-core $CONFIG_OPTION --report-last-history-checkpoint --output-file "${OUTPUT}"
+        stellar-core $CONFIG_OPTION report-last-history-checkpoint --output-file "${OUTPUT}"
         shift
     else
-        stellar-core $CONFIG_OPTION --report-last-history-checkpoint
+        stellar-core $CONFIG_OPTION report-last-history-checkpoint
     fi
     SKIP_START=true
     ;;
@@ -156,7 +157,7 @@ while [[ -n "$1" ]]; do
 done
 
 if [[ -z "${SKIP_START}" ]]; then
-  exec /init -- stellar-core $CONFIG_OPTION
+  exec /init -- stellar-core $CONFIG_OPTION run
 else
   echo "Setup complete. Skipping server start."
 fi
