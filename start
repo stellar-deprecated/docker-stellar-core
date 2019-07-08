@@ -150,6 +150,18 @@ while [[ -n "$1" ]]; do
   skipstart)
     SKIP_START=true
     ;;
+  test)
+    TEST_FILTER=$1
+    shift
+    OUTPUT=$1
+    if [[ "${OUTPUT}" ]]; then
+        stellar-core test $TEST_FILTER -r xml > "${OUTPUT}"
+        shift
+    else
+        stellar-core test $TEST_FILTER -r xml
+    fi
+    SKIP_START=true
+    ;;
   *)
     echo "Unknown container command $COMMAND" >&2
     exit 1
