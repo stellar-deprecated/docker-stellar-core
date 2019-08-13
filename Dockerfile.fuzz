@@ -2,7 +2,7 @@ FROM stellar/base:latest
 
 MAINTAINER Mat Schaffer <mat@stellar.org>
 
-ENV AFL_VERSION 2.52b
+ENV AFL_VERSION 2.53b
 
 ADD fuzz/install /
 RUN /install
