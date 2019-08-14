@@ -155,10 +155,10 @@ while [[ -n "$1" ]]; do
     shift
     OUTPUT=$1
     if [[ "${OUTPUT}" ]]; then
-        stellar-core test $TEST_FILTER -r xml > "${OUTPUT}"
+        stellar-core test "$TEST_FILTER" -r xml > "${OUTPUT}"
         shift
     else
-        stellar-core test $TEST_FILTER -r xml
+        stellar-core test "$TEST_FILTER" -r xml
     fi
     SKIP_START=true
     ;;
