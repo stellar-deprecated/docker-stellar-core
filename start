@@ -151,6 +151,13 @@ while [[ -n "$1" ]]; do
     SKIP_START=true
     ;;
   test)
+    if [[ -z "${NOPSQL}" ]]; then
+      for i in `seq 1 10`; do
+        dropdb test$i || true
+        createdb test$i
+      done
+    fi
+
     TEST_FILTER=$1
     shift
     OUTPUT=$1
