@@ -53,7 +53,7 @@ git clone https://github.com/stellar/stellar-core stellar-core
 cd stellar-core
 ./autogen.sh
 ./configure --enable-afl
-make -j $(nproc)
+make -j $(nproc) CXXFLAGS="-std=c++14"
 
 # clean out objects post-build, rebuild with make -t (touch)
 find / -name \*.o | xargs rm
