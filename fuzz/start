@@ -3,5 +3,4 @@
 set -e
 
 cd stellar-core
-export AFL_PERSISTENT=1
 make fuzz
