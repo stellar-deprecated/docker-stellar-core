@@ -17,7 +17,7 @@ apt-get install -y python-pip
 pip install awscli --upgrade  # for uploading history to s3
 pip install boto              # for sending crash emails
 
-apt-get install -y postgresql-client
+apt-get install -y postgresql-client sqlite3
 
 [[ -f stellar-core.deb ]] || wget -nv -O stellar-core.deb https://s3.amazonaws.com/stellar.org/releases/stellar-core/stellar-core-${STELLAR_CORE_VERSION}_amd64.deb
 
