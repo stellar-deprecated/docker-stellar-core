@@ -2,12 +2,14 @@
 
 set -e
 
-wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+export DEBIAN_FRONTEND=noninteractive
 
+apt-get update
+apt-get install apt-transport-https
+
+wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 add-apt-repository "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch main"
 add-apt-repository "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-5.0 main"
-
-export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
 
