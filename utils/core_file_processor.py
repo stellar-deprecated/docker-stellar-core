@@ -13,17 +13,36 @@ import boto.ses
 
 
 def format_time(epoch_time):
+    """
+    Formats a formatted string. datetime.
+
+    Args:
+        epoch_time: (int): write your description
+    """
     time_format = "%Y-%m-%dT%H:%M:%S"
     return time.strftime(time_format, time.gmtime(epoch_time))
 
 
 class CoreMailer(object):
     def __init__(self, config):
+        """
+        Initialize the config.
+
+        Args:
+            self: (todo): write your description
+            config: (todo): write your description
+        """
         self.config = config
         self.hostname = self.config.get('Config', 'hostname')
         self.out = sys.stdout
 
     def find_core(self):
+        """
+        Finds the core.
+
+        Args:
+            self: (todo): write your description
+        """
         path = self.config.get('Config', 'cores')
         core_filter = self.config.get('Config', 'core_filter')
 
@@ -33,11 +52,24 @@ class CoreMailer(object):
             return max(cores, key=os.path.getctime)
 
     def filter_logs(self, logs):
+        """
+        Filter log messages from the given.
+
+        Args:
+            self: (todo): write your description
+            logs: (str): write your description
+        """
         log_filter = self.config.get('Config', 'log_filter')
         if not log_filter:
             return logs
 
         def strip_prefix(line):
+            """
+            Strips the prefix.
+
+            Args:
+                line: (todo): write your description
+            """
             first_space = line.index(' ')
             following_colon = line.index(':', first_space)
             return line[0:first_space] + line[following_colon:]
@@ -48,6 +80,13 @@ class CoreMailer(object):
         return "\n".join(stripped)
 
     def find_logs(self, epoch_time):
+        """
+        Return the logs for a given epoch.
+
+        Args:
+            self: (todo): write your description
+            epoch_time: (int): write your description
+        """
         log = self.config.get('Config', 'log')
         formatted_time = format_time(epoch_time)
         logging.info('Searching %s for logs around %s', log, formatted_time)
@@ -61,6 +100,13 @@ class CoreMailer(object):
             return 'Unable to retrieve logs around %s' % formatted_time
 
     def get_trace(self, core):
+        """
+        Get the trace of a given core.
+
+        Args:
+            self: (todo): write your description
+            core: (todo): write your description
+        """
         binary = self.config.get('Config', 'bin')
         logging.info('Processing core file %s with binary %s', core, binary)
 
@@ -77,6 +123,15 @@ class CoreMailer(object):
         return subprocess.check_output(command, stderr=subprocess.STDOUT)
 
     def send_alert(self, epoch_time, trace, logs):
+        """
+        Send an alert.
+
+        Args:
+            self: (todo): write your description
+            epoch_time: (todo): write your description
+            trace: (str): write your description
+            logs: (todo): write your description
+        """
         template_vars = {
             "hostname": self.hostname,
             "binary": self.config.get('Config', 'bin'),
@@ -109,11 +164,29 @@ class CoreMailer(object):
         self.send_email(sender, recipient, subject, body)
 
     def send_email(self, sender, recipient, subject, body):
+        """
+        Send an email.
+
+        Args:
+            self: (str): write your description
+            sender: (str): write your description
+            recipient: (str): write your description
+            subject: (str): write your description
+            body: (str): write your description
+        """
         conn = boto.ses.connect_to_region(self.config.get('Config', 'region'))
         # noinspection PyTypeChecker
         conn.send_email(sender, subject, None, [recipient], html_body=body)
 
     def output_trace(self, epoch_time, trace):
+        """
+        Outputs the trace.
+
+        Args:
+            self: (todo): write your description
+            epoch_time: (int): write your description
+            trace: (bool): write your description
+        """
         template_vars = {
             "hostname": self.hostname,
             "binary": self.config.get('Config', 'bin'),
@@ -131,6 +204,13 @@ class CoreMailer(object):
         self.out.write(body)
 
     def archive_core(self, core):
+        """
+        Remove an core.
+
+        Args:
+            self: (todo): write your description
+            core: (todo): write your description
+        """
         command_string = self.config.get('Config', 'archive_command')
         if command_string:
             core_path = os.path.join(self.hostname, os.path.basename(core))
@@ -141,6 +221,13 @@ class CoreMailer(object):
         os.remove(core)
 
     def run(self, single_core):
+        """
+        Run a single epoch.
+
+        Args:
+            self: (todo): write your description
+            single_core: (todo): write your description
+        """
         core = single_core or self.find_core()
         mode = self.config.get('Config', 'mode')
 
