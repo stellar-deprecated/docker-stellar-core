@@ -7,6 +7,12 @@ import ConfigParser
 from StringIO import StringIO
 
 def create_mailer(options=None):
+    """
+    Creates a mailer.
+
+    Args:
+        options: (str): write your description
+    """
     defaults = {
         "cores": "fakecoredir",
         "log": "fakelogfile",
@@ -25,6 +31,11 @@ def create_mailer(options=None):
 
 
 def test_log_filtering():
+    """
+    Test for the log file.
+
+    Args:
+    """
     logs = textwrap.dedent("""
       2015-06-16T21:07:04.007435+00:00 core-delivery-001.stg.stellar001.internal.stellar-ops.com docker/b60e5fc489e2[29424]: terminate called after throwing an instance of 'std::runtime_error'
       2015-06-16T21:07:04.007836+00:00 core-delivery-001.stg.stellar001.internal.stellar-ops.com docker/b60e5fc489e2[29424]:   what():  baseCheckDecode decoded to <5 bytes
@@ -40,6 +51,11 @@ def test_log_filtering():
     assert_equals(mailer.filter_logs(logs), expected_logs)
 
 def test_local_mode():
+    """
+    Test if the local files.
+
+    Args:
+    """
     mailer = create_mailer({"mode": "local"})
     mailer.find_core = lambda: __file__
     mailer.get_trace = lambda _: "some traces"
@@ -48,9 +64,23 @@ def test_local_mode():
     assert_regexp_matches(mailer.out.getvalue(), "some traces")
 
 def test_aws_mode():
+    """
+    Test if an aws aws.
+
+    Args:
+    """
     captures = {}
 
     def capture_output(sender, recipient, subject, body):
+        """
+        Send a message to a recipient.
+
+        Args:
+            sender: (todo): write your description
+            recipient: (str): write your description
+            subject: (todo): write your description
+            body: (todo): write your description
+        """
         captures["sender"] = sender
         captures["recipient"] = recipient
         captures["subject"] = subject
