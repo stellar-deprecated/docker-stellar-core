@@ -5,33 +5,15 @@ set -e
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
-apt-get install apt-transport-https
 
-wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-add-apt-repository "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch main"
-add-apt-repository "deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-5.0 main"
+# We need apt-transport-https for adding apt.stellar.org in the Dockerfile
+apt-get install -y wget curl python-six python-colorama python-pip postgresql-client sqlite3 apt-transport-https
 
-apt-get update
-
-apt-get install -y libstdc++6 libpq5 lldb-5.0 curl
-
-apt-get install -y python-pip
 pip install awscli --upgrade  # for uploading history to s3
-pip install boto              # for sending crash emails
-
-apt-get install -y postgresql-client sqlite3
-
-[[ -f stellar-core.deb ]] || wget -nv -O stellar-core.deb https://s3.amazonaws.com/stellar.org/releases/stellar-core/stellar-core-${STELLAR_CORE_VERSION}_amd64.deb
-
-dpkg -i stellar-core.deb
-rm stellar-core.deb
 
 # purge stuff we don't directly need
 apt-get purge -y sgml-base ucf gcc g++ xz-utils libpod-latex-perl dbus
 apt-get autoremove -y
-
-# put back 2 needed awscli packages
-apt-get install -y python-six python-colorama
 
 apt-get clean
 rm -rf /var/lib/apt/lists/*
@@ -45,3 +27,9 @@ rm -rf /usr/lib/llvm-5.0/lib/*.a ./lib/x86_64-linux-gnu/*.a
 rm -rf /usr/lib/llvm-5.0/bin/{opt,lli,llc,llvm-tblgen,bugpoint}
 rm -rf /usr/local/lib/python2.7/dist-packages/awscli/examples
 rm -rf /usr/share/postgresql/*/man
+
+# From https://github.com/stellar/docker-base/blob/master/install#L13-L16
+# Allows SIGABRT and adopt orphaned child processes
+wget -nv -O init https://github.com/ohjames/lovely_touching/releases/download/v0.1.0/lovely_touching
+test $(md5sum init | awk '{print $1}') == "d229951a822dbb0f4306166e61141c30"
+chmod +x init
