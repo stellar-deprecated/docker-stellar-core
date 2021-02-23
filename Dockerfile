@@ -2,7 +2,7 @@ FROM ubuntu:xenial
 
 MAINTAINER Mat Schaffer <mat@stellar.org>
 
-ENV STELLAR_CORE_VERSION 11.4.0-468.6f2b8da.xenial~cap35FonsTest~buildtests
+ENV STELLAR_CORE_VERSION 11.4.0-472.84cd6a0.xenial~cap35FonsTest~buildtests
 
 EXPOSE 11625
 EXPOSE 11626
