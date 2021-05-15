@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+
+set -e
+
+export SELF="$1"
+
+if [[ -z "${SELF}" ]]; then
+  echo "Usage: $0 <node> [commands...]" >&2
+  exit 1
+fi
+
+shift
+
+export CONTAINER_ID=$(grep cpu: /proc/self/cgroup | awk -F/ '{ print $3 }')
+
+confd -onetime -backend=env
+
+source /etc/profile
+
+if [[ -f "/stellar-core-override.cfg" ]]; then
+  CONFIG_OPTION="--conf /stellar-core-override.cfg"
+fi
+
+if [[ "$1" == "nopsql" ]]; then
+    NOPSQL=true
+    shift
+else
+    while ! psql -c 'select 1' >/dev/null 2>&1; do
+        echo "Waiting for postgres to be available..."
+        sleep 1
+    done
+fi
+
+function newdb() {
+    rm -rf /data/*
+
+    if [[ -z "${NOPSQL}" ]]; then
+
+      dropdb stellar || true
+      createdb stellar
+
+      if [[ -n "${HORIZON_PASSWORD}" ]]; then
+        dropuser horizon || true
+        createuser horizon
+        psql -c "alter user horizon with password '${HORIZON_PASSWORD}'"
+        psql >/dev/null <<-SQL
+           GRANT CONNECT ON DATABASE stellar to horizon;
+           \c stellar
+           REVOKE ALL ON schema public FROM public;
+           GRANT ALL ON schema public TO postgres;
+           GRANT USAGE ON SCHEMA public to horizon;
+
+           GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO horizon;
+           GRANT SELECT ON ALL TABLES IN SCHEMA public TO horizon;
+
+           ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON SEQUENCES TO horizon;
+           ALTER DEFAULT PRIVILEGES FOR USER postgres IN SCHEMA public GRANT SELECT ON TABLES TO horizon;
+SQL
+      fi
+
+    fi
+
+    stellar-core $CONFIG_OPTION new-db
+}
+
+while [[ -n "$1" ]]; do
+  COMMAND="$1"
+  shift
+
+  case "${COMMAND}" in
+  newdb)
+    newdb
+    ;;
+  fresh)
+    newdb
+    [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core $CONFIG_OPTION new-hist "${SELF}"
+    ;;
+  newhist)
+    [[ -n "${HISTORY_RESET}" ]] && $(printf "${HISTORY_RESET}" "${SELF}") || true
+    [[ -n "${HISTORY_PUT}" ]] && stellar-core $CONFIG_OPTION new-hist "${SELF}"
+    ;;
+  forcescp)
+    stellar-core $CONFIG_OPTION force-scp
+    ;;
+  catchupcomplete)
+    stellar-core $CONFIG_OPTION catchup current/max
+    ;;
+  catchuprange)
+    FROM=$1
+    shift
+    TO=$1
+    shift
+    if [ "${FROM}" -eq "${FROM}" -a "${TO}" -eq "${TO}" ]; then
+        OUTPUT=$1
+        COUNT=$((TO-FROM+1))
+        if [[ "${OUTPUT}" ]]; then
+            stellar-core $CONFIG_OPTION catchup $TO/$COUNT --output-file "${OUTPUT}"
+            shift
+        else
+            stellar-core $CONFIG_OPTION catchup $TO/$COUNT
+        fi
+    else
+      echo "Valid ledger range required" >&2
+      exit 1
+    fi
+    ;;
+  catchupat)
+    AT=$1
+    shift
+    if [[ "${AT}" == "current" || "${AT}" -eq "${AT}" ]]; then
+        OUTPUT=$1
+        if [[ "${OUTPUT}" ]]; then
+            stellar-core $CONFIG_OPTION catchup $AT/0 --output-file "${OUTPUT}"
+            shift
+        else
+            stellar-core $CONFIG_OPTION catchup $AT/0
+        fi
+    else
+      echo "Valid ledger required" >&2
+      exit 1
+    fi
+    ;;
+  catchupto)
+    TO=$1
+    shift
+    if [[ "${TO}" == "current" || "${TO}" -eq "${TO}" ]]; then
+        OUTPUT=$1
+        if [[ "${OUTPUT}" ]]; then
+            stellar-core $CONFIG_OPTION catchup $TO/max --output-file "${OUTPUT}"
+            shift
+        else
+            stellar-core $CONFIG_OPTION catchup $TO/max
+        fi
+    else
+      echo "Valid ledger required" >&2
+      exit 1
+    fi
+    ;;
+  lasthistorycheckpoint)
+    OUTPUT=$1
+    if [[ "${OUTPUT}" ]]; then
+        stellar-core $CONFIG_OPTION report-last-history-checkpoint --output-file "${OUTPUT}"
+        shift
+    else
+        stellar-core $CONFIG_OPTION report-last-history-checkpoint
+    fi
+    SKIP_START=true
+    ;;
+  skipstart)
+    SKIP_START=true
+    ;;
+  test)
+    if [[ -z "${NOPSQL}" ]]; then
+      for i in `seq 1 10`; do
+        dropdb test$i || true
+        createdb test$i
+      done
+    fi
+
+    TEST_FILTER=$1
+    shift
+    OUTPUT=$1
+    if [[ "${OUTPUT}" ]]; then
+        stellar-core test "$TEST_FILTER" -r xml > "${OUTPUT}"
+        shift
+    else
+        stellar-core test "$TEST_FILTER" -r xml
+    fi
+    SKIP_START=true
+    ;;
+  *)
+    echo "Unknown container command $COMMAND" >&2
+    exit 1
+  esac
+done
+
+if [[ -z "${SKIP_START}" ]]; then
+  exec /init -- stellar-core $CONFIG_OPTION run
+else
+  echo "Setup complete. Skipping server start."
+fi
